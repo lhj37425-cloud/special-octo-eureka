@@ -1,0 +1,91 @@
+{
+  "courses": [
+    {
+      "id": "agent-101",
+      "name": "企业 Agent 从原型到上线",
+      "intro": "用可验证的工作流，把复杂任务拆成能交付的智能协作系统。",
+      "published": true,
+      "order": 1,
+      "materials": [],
+      "category": "Agent 部署",
+      "audience": "产品、技术与业务负责人",
+      "teacher": "林澈",
+      "teacherId": "lin-che",
+      "outline": [
+        "识别高价值业务场景",
+        "搭建 Agent 工作流与工具边界",
+        "评估、监控与持续迭代"
+      ],
+      "goals": [],
+      "cover": "/assets/course-workshop.png",
+      "videos": [
+        {
+          "name": "841893254c8dd2d054cbaa85022115df.mp4",
+          "url": "/uploads/47890d46-9689-4906-bc86-adca5585c383.mp4",
+          "title": "841893254c8dd2d054cbaa85022115df.mp4",
+          "duration": 0,
+          "poster": ""
+        }
+      ]
+    },
+    {
+      "id": "ai-leadership",
+      "name": "AI 时代的组织能力设计",
+      "category": "管理与战略",
+      "audience": "企业管理者与团队负责人",
+      "teacher": "周岚",
+      "intro": "帮助管理者建立可落地的 AI 协作方式，而不是停留在工具试用。",
+      "outline": [
+        "AI 对岗位与流程的影响",
+        "从试点到规模化的路线图",
+        "建立安全与效率的治理机制"
+      ],
+      "tone": "c2",
+      "published": true,
+      "order": 2,
+      "cover": "/assets/course-workshop.png",
+      "videos": [],
+      "materials": []
+    }
+  ],
+  "teachers": [
+    {
+      "id": "lin-che",
+      "name": "林澈",
+      "initials": "LC",
+      "role": "AI 产品与 Agent 架构顾问",
+      "expertise": [
+        "Agent 工作流",
+        "企业知识库",
+        "评估体系"
+      ],
+      "intro": "长期关注 AI 从“可演示”走向“可运营”的最后一公里，擅长复杂流程的系统化设计。",
+      "courses": [
+        "agent-101"
+      ],
+      "photo": "/assets/teacher-1.png",
+      "published": true,
+      "order": 1,
+      "materials": []
+    },
+    {
+      "id": "zhou-lan",
+      "name": "周岚",
+      "initials": "ZL",
+      "role": "组织发展与 AI 转型教练",
+      "expertise": [
+        "组织设计",
+        "管理者训练",
+        "变革落地"
+      ],
+      "intro": "聚焦人与流程的协同变化，帮助团队把 AI 能力纳入真实的经营节奏。",
+      "courses": [
+        "ai-leadership"
+      ],
+      "photo": "/assets/teacher-2.png",
+      "published": true,
+      "order": 2,
+      "materials": []
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Local runtime logs and automatic recovery snapshots
+mvp-server*.log
+.mvp-backups/
+
+# User-uploaded files are kept locally and must not be committed by default
+data/mvp-uploads/

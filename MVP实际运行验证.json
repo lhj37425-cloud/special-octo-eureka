@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-17T10:22:21.230Z",
+  "passed": true,
+  "base": "http://127.0.0.1:4173",
+  "results": [
+    {
+      "check": "实际服务原站页面与参数变体",
+      "passed": true,
+      "count": 63
+    },
+    {
+      "check": "原有内容迁移后详情和图片/资料可访问",
+      "passed": true,
+      "courses": 2,
+      "teachers": 2
+    },
+    {
+      "check": "实际安装源码一致，数据目录不可公开访问",
+      "passed": true
+    },
+    {
+      "check": "实际浏览器页面与图片/布局/zh/",
+      "passed": true
+    },
+    {
+      "check": "实际浏览器页面与图片/布局/zh/courses/",
+      "passed": true
+    },
+    {
+      "check": "实际浏览器页面与图片/布局/zh/teachers/",
+      "passed": true
+    },
+    {
+      "check": "实际浏览器页面与图片/布局/zh/admin/",
+      "passed": true
+    }
+  ]
+}
