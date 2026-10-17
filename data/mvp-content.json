@@ -8,6 +8,32 @@
       "order": 1,
       "materials": [],
       "category": "Agent 部署",
+      "translations": {
+        "vi": {
+          "name": "Từ nguyên mẫu đến triển khai AI Agent",
+          "category": "Triển khai Agent",
+          "intro": "Biến các tác vụ phức tạp thành quy trình AI cộng tác có thể triển khai và kiểm chứng.",
+          "audience": "Người phụ trách sản phẩm, kỹ thuật và nghiệp vụ",
+          "teacher": "Lâm Triệt",
+          "outline": [
+            "Xác định các kịch bản nghiệp vụ có giá trị cao",
+            "Xây dựng quy trình Agent và ranh giới công cụ",
+            "Đánh giá, giám sát và lặp lại liên tục"
+          ]
+        },
+        "en": {
+          "name": "Enterprise Agent: From Prototype to Production",
+          "category": "Agent Deployment",
+          "intro": "Turn complex tasks into verifiable AI collaboration workflows ready for delivery.",
+          "audience": "Product, technical and business leads",
+          "teacher": "Lin Che",
+          "outline": [
+            "Identify high-value business scenarios",
+            "Build Agent workflows and tool boundaries",
+            "Evaluate, monitor and continuously iterate"
+          ]
+        }
+      },
       "audience": "产品、技术与业务负责人",
       "teacher": "林澈",
       "teacherId": "lin-che",
@@ -32,6 +58,32 @@
       "id": "ai-leadership",
       "name": "AI 时代的组织能力设计",
       "category": "管理与战略",
+      "translations": {
+        "vi": {
+          "name": "Thiết kế năng lực tổ chức trong thời đại AI",
+          "category": "Quản trị & chiến lược",
+          "intro": "Giúp nhà quản lý xây dựng cách phối hợp với AI có thể áp dụng, thay vì chỉ thử công cụ.",
+          "audience": "Quản lý doanh nghiệp và người phụ trách nhóm",
+          "teacher": "Chu Lam",
+          "outline": [
+            "Tác động của AI đến vị trí và quy trình",
+            "Lộ trình từ thử nghiệm đến mở rộng",
+            "Thiết lập cơ chế quản trị về an toàn và hiệu quả"
+          ]
+        },
+        "en": {
+          "name": "Organizational Capability Design in the AI Era",
+          "category": "Management & Strategy",
+          "intro": "Help leaders establish practical AI collaboration instead of stopping at tool trials.",
+          "audience": "Business managers and team leads",
+          "teacher": "Zhou Lan",
+          "outline": [
+            "How AI affects roles and workflows",
+            "A roadmap from pilot to scale",
+            "Build governance for security and efficiency"
+          ]
+        }
+      },
       "audience": "企业管理者与团队负责人",
       "teacher": "周岚",
       "intro": "帮助管理者建立可落地的 AI 协作方式，而不是停留在工具试用。",
@@ -54,6 +106,61 @@
       "name": "林澈",
       "initials": "LC",
       "role": "AI 产品与 Agent 架构顾问",
+      "translations": {
+        "vi": {
+          "name": "Lâm Triệt",
+          "role": "Cố vấn sản phẩm AI & kiến trúc Agent",
+          "institution": "Đại học Công nghệ Thâm Quyến (dữ liệu demo)",
+          "education": "Thạc sĩ Khoa học & Kỹ thuật Máy tính (dữ liệu demo)",
+          "background": "Từng tham gia thiết kế các dự án số hóa doanh nghiệp và quy trình làm việc thông minh (dữ liệu demo).",
+          "researchAreas": [
+            "Quy trình Agent",
+            "Quản trị tri thức doanh nghiệp",
+            "Phương pháp đánh giá AI"
+          ],
+          "aiTeachingExperience": "Đào tạo về quy trình Agent và ứng dụng kho tri thức cho đội ngũ sản phẩm, kỹ thuật và nghiệp vụ (dữ liệu demo).",
+          "aiResearchExperience": "Quan tâm đến phương pháp triển khai AI doanh nghiệp có thể đánh giá và vận hành (dữ liệu demo).",
+          "aiApplicationExperience": "Tham gia thiết kế nguyên mẫu kho tri thức, phối hợp quy trình và Agent doanh nghiệp (dữ liệu demo).",
+          "intro": "Tập trung vào chặng cuối đưa AI từ trình diễn đến vận hành, với thế mạnh là thiết kế hệ thống cho quy trình phức tạp.",
+          "expertise": [
+            "Quy trình Agent",
+            "Kho tri thức doanh nghiệp",
+            "Hệ thống đánh giá"
+          ]
+        },
+        "en": {
+          "name": "Lin Che",
+          "role": "AI Product & Agent Architecture Advisor",
+          "institution": "Shenzhen Technology University (demo data)",
+          "education": "MSc in Computer Science and Technology (demo data)",
+          "background": "Contributed to enterprise digitization and intelligent workflow design projects (demo data).",
+          "researchAreas": [
+            "Agent workflows",
+            "Enterprise knowledge management",
+            "AI evaluation methods"
+          ],
+          "aiTeachingExperience": "Delivers Agent workflow and knowledge-base application training for product, technical and business teams (demo data).",
+          "aiResearchExperience": "Studies evaluable and operable approaches to enterprise AI applications (demo data).",
+          "aiApplicationExperience": "Contributed to enterprise knowledge-base, workflow collaboration and Agent prototype design (demo data).",
+          "intro": "Focuses on the last mile from demonstrable AI to operable AI, with strength in systematic design for complex processes.",
+          "expertise": [
+            "Agent workflows",
+            "Enterprise knowledge base",
+            "Evaluation systems"
+          ]
+        }
+      },
+      "institution": "深圳技术大学（演示资料）",
+      "education": "计算机科学与技术硕士（演示资料）",
+      "background": "曾参与企业数字化与智能工作流相关项目设计（演示资料）。",
+      "researchAreas": [
+        "智能体工作流",
+        "企业知识管理",
+        "AI 评估方法"
+      ],
+      "aiTeachingExperience": "面向产品、技术与业务团队开展 Agent 工作流和知识库应用培训（演示资料）。",
+      "aiResearchExperience": "关注可评估、可运营的企业 AI 应用方法（演示资料）。",
+      "aiApplicationExperience": "参与企业知识库、流程协同与智能体原型设计（演示资料）。",
       "expertise": [
         "Agent 工作流",
         "企业知识库",
@@ -73,6 +180,61 @@
       "name": "周岚",
       "initials": "ZL",
       "role": "组织发展与 AI 转型教练",
+      "translations": {
+        "vi": {
+          "name": "Chu Lam",
+          "role": "Huấn luyện viên phát triển tổ chức & chuyển đổi AI",
+          "institution": "Đại học Thâm Quyến (dữ liệu demo)",
+          "education": "Thạc sĩ Quản trị học (dữ liệu demo)",
+          "background": "Tập trung vào phối hợp giữa phát triển tổ chức, đào tạo nhân sự và chuyển đổi số (dữ liệu demo).",
+          "researchAreas": [
+            "Xây dựng năng lực tổ chức",
+            "Làm việc cùng AI",
+            "Quản trị thay đổi"
+          ],
+          "aiTeachingExperience": "Thiết kế workshop về cách phối hợp với AI cho quản lý và đội ngũ nghiệp vụ (dữ liệu demo).",
+          "aiResearchExperience": "Nghiên cứu các vấn đề phối hợp và quản trị khi AI đi vào quy trình tổ chức (dữ liệu demo).",
+          "aiApplicationExperience": "Tham gia thiết kế nhịp độ thử nghiệm, tổng kết và mở rộng AI cho đội ngũ (dữ liệu demo).",
+          "intro": "Tập trung vào sự thay đổi phối hợp giữa con người và quy trình, giúp đội ngũ đưa năng lực AI vào nhịp vận hành thực tế.",
+          "expertise": [
+            "Thiết kế tổ chức",
+            "Đào tạo quản lý",
+            "Thay đổi thực thi"
+          ]
+        },
+        "en": {
+          "name": "Zhou Lan",
+          "role": "Organization Development & AI Transformation Coach",
+          "institution": "Shenzhen University (demo data)",
+          "education": "Master of Management (demo data)",
+          "background": "Focuses on the collaboration of organization development, talent development and digital transformation (demo data).",
+          "researchAreas": [
+            "Organizational capability building",
+            "AI collaboration",
+            "Change management"
+          ],
+          "aiTeachingExperience": "Designs AI collaboration workshops for managers and business teams (demo data).",
+          "aiResearchExperience": "Studies collaboration and governance as AI enters organizational workflows (demo data).",
+          "aiApplicationExperience": "Contributed to AI pilot, review and rollout rhythm design for teams (demo data).",
+          "intro": "Focuses on coordinated change across people and processes, helping teams bring AI capability into their operating rhythm.",
+          "expertise": [
+            "Organization design",
+            "Manager training",
+            "Change delivery"
+          ]
+        }
+      },
+      "institution": "深圳大学（演示资料）",
+      "education": "管理学硕士（演示资料）",
+      "background": "聚焦组织发展、人才培养与数字化转型协同（演示资料）。",
+      "researchAreas": [
+        "组织能力建设",
+        "AI 协同工作",
+        "变革管理"
+      ],
+      "aiTeachingExperience": "为管理者与业务团队设计 AI 协作方式的培训工作坊（演示资料）。",
+      "aiResearchExperience": "研究 AI 进入组织流程后的协同与治理问题（演示资料）。",
+      "aiApplicationExperience": "参与团队 AI 试点、复盘与推广节奏设计（演示资料）。",
       "expertise": [
         "组织设计",
         "管理者训练",
@@ -86,6 +248,30 @@
       "published": true,
       "order": 2,
       "materials": []
+    },
+    {
+      "id": "teacher-b2c02575-d5fb-4440-9b48-8419ac85edee",
+      "name": "周易",
+      "intro": "很牛逼",
+      "published": false,
+      "order": 3,
+      "materials": [],
+      "institution": "牛校",
+      "role": "Agent 部署",
+      "expertise": [],
+      "education": "牛历",
+      "background": "牛专",
+      "researchAreas": [
+        "牛盐"
+      ],
+      "aiTeachingExperience": "",
+      "aiResearchExperience": "",
+      "aiApplicationExperience": "",
+      "courses": [
+        "ai-leadership"
+      ],
+      "photo": "/assets/teacher-1.png"
     }
-  ]
+  ],
+  "qualifications": []
 }

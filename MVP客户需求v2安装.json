@@ -1,0 +1,31 @@
+﻿{
+    "branch":  "feature/client-requirements-v2",
+    "backup":  "D:\\项目\\.mvp-backups\\20261017-210935-client-v2",
+    "files":  [
+                  "server.js",
+                  "views.cjs",
+                  "qualifications.cjs",
+                  "public\\admin.js",
+                  "public\\mvp.css",
+                  "public\\zh\\index.html",
+                  "public\\zh\\about\\index.html",
+                  "public\\zh\\agents\\index.html",
+                  "public\\zh\\contact\\index.html",
+                  "public\\zh\\implementation\\index.html",
+                  "public\\zh\\insights\\index.html",
+                  "public\\zh\\insights\\first-ai-project\\index.html",
+                  "public\\zh\\insights\\training-to-practice\\index.html",
+                  "public\\zh\\privacy\\index.html",
+                  "public\\zh\\scenarios\\index.html",
+                  "public\\zh\\scenarios\\content\\index.html",
+                  "public\\zh\\scenarios\\knowledge\\index.html",
+                  "public\\zh\\scenarios\\recruitment\\index.html",
+                  "public\\zh\\terms\\index.html",
+                  "public\\zh\\thank-you\\index.html",
+                  "public\\zh\\training\\index.html",
+                  "public\\zh\\training\\agent-practice\\index.html",
+                  "public\\zh\\training\\business-ai\\index.html"
+              ],
+    "installedAt":  "2026-10-17T21:09:35.8244548+08:00",
+    "contentHash":  "BFA07691A49B95545ABE6AEF663F5578AD5C1A66D21247D88E2A73A7D26C434B"
+}
