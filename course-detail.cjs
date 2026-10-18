@@ -8,4 +8,10 @@ return `<section class="page-hero"><div class="container"><nav class="breadcrumb
 <section class="section" id="course-outline" data-course-section><div class="container"><p class="eyebrow">03</p><h2>${d[2]}</h2><ol class="mvp-outline">${(c.outline||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>${c.materials?.length?`<div class="mvp-resources">${c.materials.map(f=>`<a class="mvp-resource" href="${esc(f.url)}" download>${esc(f.name)} ↓</a>`).join('')}</div>`:''}</div></section>
 <section class="section warm-section" id="course-preview" data-course-section><div class="container"><p class="eyebrow">04</p><h2>${d[3]}</h2><div class="mvp-preview-grid">${Array.from({length:3},(_,i)=>{const v=c.videos?.[i];return `<article class="mvp-preview-card"><div class="mvp-preview-media"><button class="mvp-preview-trigger" type="button" ${v?`data-preview-src="${esc(v.url)}"`:'disabled'} aria-label="${esc(v?`${l==='zh'?'播放':'Play'} ${v.title||v.name}`:d[7])}"><img src="${esc(v?.poster||c.cover||'/assets/course-workshop.png')}" alt="" loading="lazy"><span class="mvp-preview-play" aria-hidden="true">${v?'▶':'▷'}</span><span class="mvp-preview-duration">${duration(v?.duration)}</span></button></div><div class="mvp-preview-caption"><p class="eyebrow">${d[6]} ${String(i+1).padStart(2,'0')}</p><h3>${esc(v?.title||v?.name||d[7])}</h3></div></article>`}).join('')}</div></div></section>
 <section class="section mvp-enrol" id="course-enquiry" data-course-section><div class="container"><p class="eyebrow">05</p><h2>${d[4]}</h2><p>${d[8]}</p><a class="button primary" href="${base}contact/?service=training">${d[5]} ↗</a></div></section>`}
-module.exports={courseDetail};
+function courseDetailWithNavigation(c,l,teachers){
+ const base=`/${l}/`,back=l==='zh'?'返回 AI 课程':l==='en'?'Back to AI courses':'Về khóa học AI',preview=labels[l][3];
+ return courseDetail(c,l,teachers)
+  .replace('</h1></div></section>',`</h1><a class="text-link" href="${base}courses/">← ${back}</a></div></section>`)
+  .replace('</div></div></div></section>',`</div><a class="text-link" href="#course-preview">${preview} ↓</a></div></div></section>`);
+}
+module.exports={courseDetail:courseDetailWithNavigation};
