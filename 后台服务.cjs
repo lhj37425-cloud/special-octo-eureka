@@ -2,6 +2,7 @@ const crypto=require('crypto'),fs=require('fs'),path=require('path');
 const dataRoot=path.resolve(process.env.ADMIN_DATA_DIR||path.join(__dirname,'data','admin-backend'));
 const stateFile=path.join(dataRoot,'state.json');
 const uploadRoot=path.join(dataRoot,'uploads');
+const backupRoot=path.join(dataRoot,'backups');
 fs.mkdirSync(uploadRoot,{recursive:true});
 const clone=x=>JSON.parse(JSON.stringify(x));
 function read(){try{return JSON.parse(fs.readFileSync(stateFile,'utf8'))}catch{return {version:1,admin:null,sessions:{},records:[]}}}
@@ -24,4 +25,5 @@ function list(publicOnly=false){const records=read().records;if(!publicOnly)retu
 function file(name,bytes,mime){const ext=path.extname(name).toLowerCase();if(!['.jpg','.jpeg','.png','.webp','.pdf','.docx','.xlsx','.pptx','.mp4'].includes(ext))throw Error('不支持的文件类型。');const limit=ext==='.mp4'||ext==='.pdf'||ext==='.docx'||ext==='.xlsx'||ext==='.pptx'?30:10;if(bytes.length>limit*1024*1024)throw Error(`文件不能超过 ${limit}MB。`);const id=crypto.randomUUID()+ext;fs.writeFileSync(path.join(uploadRoot,id),bytes);return {id,name:String(name).slice(0,160),mime:mime||'application/octet-stream',size:bytes.length}}
 function filePath(id){return path.join(uploadRoot,path.basename(id))}
 function publicFile(id){for(const record of read().records)if(record.status==='published'&&record.published)for(const lang of langs){const v=record.published[lang]||{};if(v.image?.id===id)return filePath(id);for(const item of [...(v.attachments||[]),...(v.clips||[]).flatMap(c=>[c.video,c.cover])])if(item?.id===id)return filePath(id)}return null}
-module.exports={initialize,reset,login,auth,logout,list,saveRecord,publish,offline,remove,file,filePath,publicFile,read,types};
+function backup(){const dir=path.join(backupRoot,new Date().toISOString().replace(/[:.]/g,'-'));fs.mkdirSync(dir,{recursive:true});if(fs.existsSync(stateFile))fs.copyFileSync(stateFile,path.join(dir,'state.json'));if(fs.existsSync(uploadRoot))fs.cpSync(uploadRoot,path.join(dir,'uploads'),{recursive:true});return dir}
+module.exports={initialize,reset,login,auth,logout,list,saveRecord,publish,offline,remove,file,filePath,publicFile,backup,read,types};
