@@ -14,6 +14,7 @@ const ids={
   'agent-101':'cou-demo-agent-101',
   'ai-leadership':'cou-demo-ai-leadership'
 };
+const legacyTeacherIds={'林澈':'lin-che','周岚':'zhou-lan'};
 const mime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.mp4':'video/mp4','.pdf':'application/pdf','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'};
 const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 const write=(file,value)=>{const temp=file+'.tmp';fs.writeFileSync(temp,JSON.stringify(value,null,2));try{fs.renameSync(temp,file)}catch(error){if(error.code!=='EPERM')throw error;fs.copyFileSync(temp,file);fs.unlinkSync(temp)}};
@@ -47,18 +48,44 @@ function language(item,lang,type){
   return value;
 }
 function imported(type,id){return core.list().some(record=>record.id===ids[id]&&record.type===type)}
+function courseExperts(item){
+  const oldId=item.teacherId||legacyTeacherIds[item.teacher]||'';
+  return ids[oldId]?[ids[oldId]]:[];
+}
 function create(type,item){
-  const record=core.saveRecord({id:ids[item.id],type,order:Number(item.order)||0,experts:type==='courses'&&ids[item.teacherId||'']?[ids[item.teacherId]]:[],draft:{zh:language(item,'zh',type),en:language(item,'en',type),vi:language(item,'vi',type)}});
+  const record=core.saveRecord({id:ids[item.id],type,order:Number(item.order)||0,experts:type==='courses'?courseExperts(item):[],draft:{zh:language(item,'zh',type),en:language(item,'en',type),vi:language(item,'vi',type)}});
   return core.publish(record.id);
 }
+function repairCourseLinks(courses){
+  for(const course of courses){
+    const current=core.list().find(record=>record.id===ids[course.id]);
+    if(!current)throw Error(`未找到已迁入课程：${course.id}`);
+    const saved=core.saveRecord({...current,experts:courseExperts(course)});
+    core.publish(saved.id);
+  }
+}
 function main(){
-  if(!fs.existsSync(contentFile))throw Error('未找到前台内容数据，未执行迁入。');
-  const content=read(contentFile);
+  const repair=process.argv.includes('--修复关联');
+  let sourceFile=contentFile;
+  if(repair){
+    const backups=fs.existsSync(migrationRoot)?fs.readdirSync(migrationRoot).filter(name=>/^迁入前台虚拟内容-.*\.json$/.test(name)).sort():[];
+    if(!backups.length)throw Error('未找到迁入前备份，不能安全修复关联。');
+    sourceFile=path.join(migrationRoot,backups.at(-1));
+  }
+  if(!fs.existsSync(sourceFile))throw Error('未找到前台内容数据，未执行迁入。');
+  const content=read(sourceFile);
   const courses=(content.courses||[]).filter(item=>demoCourses.includes(item.id));
   const experts=(content.teachers||[]).filter(item=>demoExperts.includes(item.id));
   if(courses.length!==demoCourses.length||experts.length!==demoExperts.length)throw Error('当前前台数据不完整，已停止迁入以避免误删。');
   const existing=[...demoExperts.map(id=>imported('experts',id)),...demoCourses.map(id=>imported('courses',id))];
-  if(existing.some(Boolean))throw Error('系统演示数据已迁入后台；为避免重复，未再次执行。');
+  if(existing.some(Boolean)){
+    if(existing.every(Boolean)&&repair){
+      repairCourseLinks(courses);
+      console.log('已修复迁入课程与专家的关联关系。');
+      return;
+    }
+    throw Error('系统演示数据已迁入后台；为避免重复，未再次执行。');
+  }
   if(process.argv.includes('--检查')){
     console.log(`迁入检查通过：将迁入 ${experts.length} 位专家、${courses.length} 门课程；其他前台记录保持不变。`);
     return;
