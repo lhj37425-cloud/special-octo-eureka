@@ -2,6 +2,9 @@
   "name": "evoldream-local-mvp",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "start": "node server.js" },
+  "scripts": {
+    "start": "node server.js",
+    "验收:后台": "node tests/验证真实后台.cjs && node tests/验证后台接口.cjs && node tests/验证前后台联动.cjs && node tests/验证前台语言隔离.cjs && node tests/验证后台资料发布逻辑.cjs && node tests/验证课程专家关联.cjs && node tests/验证前后台资料打通.cjs"
+  },
   "engines": { "node": ">=18" }
 }
