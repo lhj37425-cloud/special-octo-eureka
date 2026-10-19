@@ -14,8 +14,12 @@ const body=req=>new Promise((resolve,reject)=>{let a=[],n=0;req.on('data',b=>{n+
 const token=req=>cookie(req).admin_session||'';
 const protect=(req,res)=>{if(!core.auth(token(req))){json(res,401,{error:'请先登录。'});return false}return true};
 const protectWrite=(req,res)=>{if(!protect(req,res))return false;const csrf=cookie(req).admin_csrf||'';if(!csrf||req.headers['x-csrf-token']!==csrf){json(res,403,{error:'安全校验失效，请重新登录。'});return false}return true};
+const loginAttempts=new Map();
+function loginKey(req,account){return `${req.socket.remoteAddress||'local'}:${String(account||'').slice(0,120)}`}
+function limited(req,account){const now=Date.now(),entry=loginAttempts.get(loginKey(req,account));if(!entry||now-entry.started>15*60*1000)return false;return entry.count>=5&&now-entry.last<5*60*1000}
+function failed(req,account){const now=Date.now(),key=loginKey(req,account),entry=loginAttempts.get(key);if(!entry||now-entry.started>15*60*1000)loginAttempts.set(key,{started:now,last:now,count:1});else{entry.last=now;entry.count++}}
 http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost'),p=decodeURIComponent(url.pathname);if(p==='/api/status')return json(res,200,{initialized:!!core.read().admin});
- if(p==='/api/login'&&req.method==='POST'){const d=JSON.parse((await body(req)).toString()||'{}'),t=core.login(d.account,d.password),csrf=crypto.randomBytes(24).toString('base64url');if(!t)return json(res,401,{error:'账号或密码错误。'});return json(res,200,{ok:true,csrf},{'Set-Cookie':[`admin_session=${encodeURIComponent(t)}; HttpOnly; SameSite=Strict; Path=/`,`admin_csrf=${encodeURIComponent(csrf)}; SameSite=Strict; Path=/`]})}
+ if(p==='/api/login'&&req.method==='POST'){const d=JSON.parse((await body(req)).toString()||'{}');if(limited(req,d.account))return json(res,429,{error:'登录尝试过多，请 5 分钟后再试。'});const t=core.login(d.account,d.password),csrf=crypto.randomBytes(24).toString('base64url');if(!t){failed(req,d.account);return json(res,401,{error:'账号或密码错误。'})}loginAttempts.delete(loginKey(req,d.account));return json(res,200,{ok:true,csrf},{'Set-Cookie':[`admin_session=${encodeURIComponent(t)}; HttpOnly; SameSite=Strict; Path=/`,`admin_csrf=${encodeURIComponent(csrf)}; SameSite=Strict; Path=/`]})}
  if(p==='/api/logout'&&req.method==='POST'){if(!protectWrite(req,res))return;core.logout(token(req));return json(res,200,{ok:true},{'Set-Cookie':['admin_session=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/','admin_csrf=; Max-Age=0; SameSite=Strict; Path=/']})}
  if(p==='/api/records'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{records:core.list()})}
  if(p==='/api/backup'&&req.method==='POST'){if(!protectWrite(req,res))return;return json(res,200,{ok:true,path:core.backup()})}
