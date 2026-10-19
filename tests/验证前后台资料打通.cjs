@@ -24,10 +24,12 @@ async function request(url,options={}){const response=await fetch(url,options);c
  }
  const expert=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'exp-qaexpert1',type:'experts',order:1,revision:0,draft:{zh:{name:'验收专家',org:'验收机构',description:'专家简介',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
  await request(`http://127.0.0.1:4291/api/records/${expert.data.record.id}/publish`,{method:'POST',headers});
- const course=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'cou-qacourse1',type:'courses',order:1,experts:[expert.data.record.id],revision:0,draft:{zh:{name:'验收课程',description:'课程简介',audience:'验收对象',outline:'课程大纲',image:upload.data.file,attachments:[],clips:[]},en:{},vi:{}}})});
+ const video=await request('http://127.0.0.1:4291/api/upload',{method:'POST',headers,body:JSON.stringify({name:'preview.mp4',mime:'video/mp4',base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Y6QAAAABJRU5ErkJggg=='})});
+ const course=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'cou-qacourse1',type:'courses',order:1,experts:[expert.data.record.id],revision:0,draft:{zh:{name:'验收课程',description:'课程简介',audience:'验收对象',outline:'课程大纲',image:upload.data.file,attachments:[],clips:[{title:'验收预览片段',video:video.data.file,cover:upload.data.file}]},en:{},vi:{}}})});
  await request(`http://127.0.0.1:4291/api/records/${course.data.record.id}/publish`,{method:'POST',headers});
  const courseHtml=await (await fetch(`http://127.0.0.1:4292/zh/courses/${course.data.record.id}/`)).text();
  assert(courseHtml.includes('验收课程'),`课程前台页未显示已发布课程：${course.data.record.id} / ${courseHtml.slice(0,300)}`);
  assert(courseHtml.includes(`/zh/teachers/${expert.data.record.id}/`),'课程前台页未关联已发布专家');
+ assert(courseHtml.includes(`/admin-media/${video.data.file.id}`),'课程前台页未输出已发布预览视频地址');
  console.log('真实登录、上传、发布、三类资料页面与课程专家关联：通过');
 }finally{fs.rmSync(root,{recursive:true,force:true});setTimeout(()=>process.exit(0),20)}})().catch(error=>{console.error(error);fs.rmSync(root,{recursive:true,force:true});process.exit(1)});
