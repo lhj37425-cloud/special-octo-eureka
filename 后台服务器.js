@@ -5,7 +5,7 @@ const html=fs.readFileSync(path.join(__dirname,'admin-demo','index.html'),'utf8'
 const assets={
  '/': ['text/html; charset=utf-8',html], '/index.html':['text/html; charset=utf-8',html],
  '/demo.css':['text/css; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.css'))],
- '/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'真实后台.js'))],
+ '/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'后台管理界面.js'))],
  '/store.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','store.js'))]
 };
 const json=(res,status,data,headers={})=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(data))};
