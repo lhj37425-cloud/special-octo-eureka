@@ -5,3 +5,5 @@ mvp-server*.log
 
 # User-uploaded files are kept locally and must not be committed by default
 data/mvp-uploads/
+data/admin-backend/
+data/migrations/
