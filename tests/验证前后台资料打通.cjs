@@ -16,12 +16,18 @@ async function request(url,options={}){const response=await fetch(url,options);c
   '认证文件':['certifications','认证资料'],
   '合作资料':['partnerships','合作资料']
  };
+ const published={};
  for(const [category,[route,name]] of Object.entries(routes)){
   const record=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:`qua-${Math.random().toString(36).slice(2,12)}`,type:'qualifications',category,order:1,revision:0,draft:{zh:{name,org:'测试机构',description:'测试说明',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
   await request(`http://127.0.0.1:4291/api/records/${record.data.record.id}/publish`,{method:'POST',headers});
+  published[category]=record.data.record.id;
   const html=await (await fetch(`http://127.0.0.1:4292/zh/qualifications/${route}/`)).text();
   assert(html.includes(name),`${route} 未显示对应资料`);
  }
+ await request(`http://127.0.0.1:4291/api/records/${published['资质证书']}/offline`,{method:'POST',headers});
+ await request(`http://127.0.0.1:4291/api/records/${published['资质证书']}`,{method:'DELETE',headers});
+ const certificatesAfterDelete=await (await fetch('http://127.0.0.1:4292/zh/qualifications/certificates/')).text();
+ assert(!certificatesAfterDelete.includes('证书资料'),'删除后前台仍显示资质证书');
  const expert=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'exp-qaexpert1',type:'experts',order:1,revision:0,draft:{zh:{name:'验收专家',org:'验收机构',description:'专家简介',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
  await request(`http://127.0.0.1:4291/api/records/${expert.data.record.id}/publish`,{method:'POST',headers});
  const video=await request('http://127.0.0.1:4291/api/upload',{method:'POST',headers,body:JSON.stringify({name:'preview.mp4',mime:'video/mp4',base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Y6QAAAABJRU5ErkJggg=='})});
