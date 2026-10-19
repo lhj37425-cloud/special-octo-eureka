@@ -5,7 +5,7 @@ const html=fs.readFileSync(path.join(__dirname,'admin-demo','index.html'),'utf8'
 const assets={
  '/': ['text/html; charset=utf-8',html], '/index.html':['text/html; charset=utf-8',html],
  '/demo.css':['text/css; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.css'))],
- '/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'后台管理界面.js'))],
+ '/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.js'))],
  '/store.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','store.js'))]
 };
 const json=(res,status,data,headers={})=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(data))};
@@ -27,6 +27,6 @@ http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localho
  let m=p.match(/^\/api\/records\/([^/]+)\/(publish|offline)$/);if(m&&req.method==='POST'){if(!protectWrite(req,res))return;return json(res,200,{record:m[2]==='publish'?core.publish(m[1]):core.offline(m[1])})}
  m=p.match(/^\/api\/records\/([^/]+)$/);if(m&&req.method==='DELETE'){if(!protectWrite(req,res))return;core.remove(m[1]);return json(res,200,{ok:true})}
  if(p==='/api/upload'&&req.method==='POST'){if(!protectWrite(req,res))return;const d=JSON.parse((await body(req)).toString()||'{}');const bytes=Buffer.from(String(d.base64||''),'base64');return json(res,201,{file:core.file(d.name,bytes,d.mime)})}
- m=p.match(/^\/media\/([^/]+)$/);if(m){const f=core.filePath(m[1]);if(!fs.existsSync(f))return json(res,404,{error:'文件不存在。'});if(!protect(req,res))return;res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':'attachment'});return fs.createReadStream(f).pipe(res)}
+ m=p.match(/^\/media\/([^/]+)$/);if(m){const f=core.filePath(m[1]);if(!fs.existsSync(f))return json(res,404,{error:'文件不存在。'});if(!protect(req,res))return;const ext=path.extname(f).toLowerCase(),mime={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.mp4':'video/mp4','.pdf':'application/pdf','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'}[ext]||'application/octet-stream';const headers={'Content-Type':mime,'X-Content-Type-Options':'nosniff'};if(!['.jpg','.jpeg','.png','.webp','.mp4','.pdf'].includes(ext))headers['Content-Disposition']='attachment';res.writeHead(200,headers);return fs.createReadStream(f).pipe(res)}
  if(assets[p]){const [type,data]=assets[p];res.writeHead(200,{'Content-Type':type});return res.end(data)}json(res,404,{error:'不存在。'});
 }catch(e){json(res,400,{error:e.message||'请求失败。'})}}).listen(port,'127.0.0.1',()=>console.log(`后台 http://127.0.0.1:${port}`));
