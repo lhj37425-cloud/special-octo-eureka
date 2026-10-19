@@ -14,6 +14,7 @@ function content(){
  const media=f=>f?.id?`/admin-media/${f.id}`:'';
  const files=v=>(v.attachments||[]).map(f=>({name:f.displayName||f.name,url:media(f)}));
  const videos=v=>(v.clips||[]).filter(c=>c.video?.id).map(c=>({name:c.title||c.video.name,title:c.title||c.video.name,url:media(c.video),poster:media(c.cover)||media(v.image)}));
+ const lines=value=>Array.isArray(value)?value:String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  for(const record of adminCore.list(true)){
   const translations={},languages={};
   for(const l of ['zh','en','vi']){
@@ -22,7 +23,7 @@ function content(){
    if(l!=='zh'&&present)translations[l]={name:v.name||'',intro:v.description||'',category:record.category||v.category||'',audience:v.audience||'',cover:media(v.image),photo:media(v.image),issuer:v.org||'',validUntil:v.validity||'',materials:files(v),videos:videos(v)};
   }
   const v=record.published.zh||{};
-  const item={id:record.id,name:v.name||record.category||record.type,intro:v.description||'',category:record.category||v.category||'',order:record.order,published:true,translations,languages,cover:media(v.image),photo:media(v.image),issuer:v.org||'',institution:v.org||'',role:v.role||'',validUntil:v.validity||'',number:v.number||'',responsibility:v.responsibility||'',results:v.results||'',audience:v.audience||'',outline:v.outline||'',goals:v.goals||'',education:v.education||'',background:v.background||'',researchAreas:v.research||'',aiTeachingExperience:v.experience||'',materials:files(v),videos:videos(v),teacherId:record.experts?.[0]||''};
+  const item={id:record.id,name:v.name||record.category||record.type,intro:v.description||'',category:record.category||v.category||'',order:record.order,published:true,translations,languages,cover:media(v.image),photo:media(v.image),issuer:v.org||'',institution:v.org||'',role:v.role||'',validUntil:v.validity||'',number:v.number||'',responsibility:v.responsibility||'',results:v.results||'',audience:v.audience||'',outline:lines(v.outline),goals:lines(v.goals),education:v.education||'',background:v.background||'',researchAreas:lines(v.research),aiTeachingExperience:v.experience||'',materials:files(v),videos:videos(v),teacherId:record.experts?.[0]||''};
   const key=record.type==='experts'?'teachers':record.type;
   db[key]=db[key].filter(x=>x.id!==item.id);db[key].push(item);
  }
