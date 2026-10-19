@@ -1,5 +1,6 @@
 # Local runtime logs and automatic recovery snapshots
 mvp-server*.log
+运行日志/
 .mvp-backups/
 
 # User-uploaded files are kept locally and must not be committed by default
