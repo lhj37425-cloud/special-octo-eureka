@@ -10,7 +10,8 @@ const kindIcon={qualifications:'award',experts:'users',courses:'book'};
 let state,section='overview',editing=null,tab='zh',dirty=false,query='',statusFilter='',publicLang='zh',publicType='qualifications',publicDetail=null,publicRecords=[],busy=false,simulateFail=false,lastSync='',syncStatus='loading';
 let previewLang='zh',previewRecord=null;
 const objectURLs=new Map();
-new MutationObserver(()=>document.querySelector('#simulate-fail')?.closest('label')?.remove()).observe(app,{childList:true,subtree:true});
+const normalizeProductionCopy=()=>{document.querySelector('#simulate-fail')?.closest('label')?.remove();const replacements={'演示工作空间':'本地独立工作空间','浏览器演示记录':'本地更新记录','所有更改已保存于浏览器':'所有更改已保存到本地后台','模拟数据 · 不写入真实站点':'本地数据 · 发布后同步前台','前台模拟页':'本地前台'};const walker=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);for(let node=walker.nextNode();node;node=walker.nextNode())for(const [from,to] of Object.entries(replacements))if(node.nodeValue.includes(from))node.nodeValue=node.nodeValue.replaceAll(from,to)};
+new MutationObserver(normalizeProductionCopy).observe(app,{childList:true,subtree:true});
 function mediaURL(file){if(!file)return '';if(file.id)return `/media/${encodeURIComponent(file.id)}`;if(!file.blob)return '';if(!objectURLs.has(file.blob))objectURLs.set(file.blob,URL.createObjectURL(file.blob));return objectURLs.get(file.blob);}
 addEventListener('pagehide',()=>{for(const url of objectURLs.values())URL.revokeObjectURL(url)});
 function toast(message){const el=document.querySelector('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),3300);}
