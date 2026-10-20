@@ -18,11 +18,14 @@ async function request(url,options={}){const response=await fetch(url,options);c
  };
  const published={};
  for(const [category,[route,name]] of Object.entries(routes)){
-  const record=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:`qua-${Math.random().toString(36).slice(2,12)}`,type:'qualifications',category,order:1,revision:0,draft:{zh:{name,org:'测试机构',description:'测试说明',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
+  const record=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:`qua-${Math.random().toString(36).slice(2,12)}`,type:'qualifications',category,order:1,revision:0,draft:{zh:{name,org:'测试机构',validity:'2099',description:'测试说明',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
   await request(`http://127.0.0.1:4291/api/records/${record.data.record.id}/publish`,{method:'POST',headers});
   published[category]=record.data.record.id;
   const html=await (await fetch(`http://127.0.0.1:4292/zh/qualifications/${route}/`)).text();
   assert(html.includes(name),`${route} 未显示对应资料`);
+  assert(html.includes('颁发 / 认证机构：测试机构'),`${route} 未显示机构标签`);
+  assert(html.includes('时间 / 有效期：2099'),`${route} 未显示有效期标签`);
+  assert(!html.includes('undefined'),`${route} 出现未定义字段标签`);
  }
  await request(`http://127.0.0.1:4291/api/records/${published['资质证书']}/offline`,{method:'POST',headers});
  await request(`http://127.0.0.1:4291/api/records/${published['资质证书']}`,{method:'DELETE',headers});

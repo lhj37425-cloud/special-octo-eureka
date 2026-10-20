@@ -1,15 +1,19 @@
 @echo off
-chcp 65001 >nul
+setlocal
 cd /d "%~dp0"
-where node >nul 2>nul
-if errorlevel 1 (
-  echo 请先安装 Node.js，再运行此文件。
+
+set "NODE=C:\Program Files\nodejs\node.exe"
+if not exist "%NODE%" (
+  echo Node.js was not found at:
+  echo %NODE%
   pause
   exit /b 1
 )
-echo EVOL DREAM MVP
-echo 前台：http://127.0.0.1:4173/zh/
-echo 后台：http://127.0.0.1:4173/zh/admin/
-echo 请保留此窗口。停止服务请按 Ctrl+C。
-node server.js
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 4173 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }" >nul 2>&1
+
+echo Starting EVOL DREAM frontend...
+echo Open: http://127.0.0.1:4173/zh/
+echo Keep this window open while using the website.
+"%NODE%" server.js
 pause
