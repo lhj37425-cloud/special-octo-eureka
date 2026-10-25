@@ -6,3 +6,7 @@ let r=core.saveRecord({type:'courses',draft:{zh:{name:'测试课程',description
 const backup=core.backup();assert.ok(fs.existsSync(path.join(backup,'state.json')));assert.ok(fs.existsSync(path.join(backup,'uploads')));console.log('备份验证通过');
 const saved=core.file('恢复图片.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png');let restored=core.saveRecord({type:'courses',draft:{zh:{name:'恢复课程',description:'用于恢复验证',image:saved,attachments:[],clips:[]}}});core.publish(restored.id);const restorePoint=core.backup();core.offline(restored.id);core.remove(restored.id);core.restore(restorePoint);assert.equal(core.list(true).length,1);assert.equal(core.publicFile(saved.id),path.join(temp,'uploads',saved.id));console.log('备份恢复验证通过');
 core.reset('admin','0987654321');assert.equal(core.auth(token),null);assert.ok(core.login('admin','0987654321'));console.log('管理员重置会话失效验证通过');
+// 登录时清理过期会话：30 分钟无操作、登录满 8 小时或缺少时间的会话被删除，有效会话保留
+const stateFile=path.join(temp,'state.json'),state=JSON.parse(fs.readFileSync(stateFile,'utf8')),userId=state.users[0].id,now=Date.now();
+state.sessions={idle:{userId,createdAt:now-60*60*1000,lastAt:now-31*60*1000},old:{userId,createdAt:now-9*60*60*1000,lastAt:now},broken:{userId},alive:{userId,createdAt:now-60*1000,lastAt:now-60*1000}};fs.writeFileSync(stateFile,JSON.stringify(state));
+const fresh=core.login('admin','0987654321'),left=Object.keys(core.read().sessions).sort();assert.deepEqual(left,['alive',fresh].sort());assert.ok(core.auth('alive'));console.log('登录时清理过期会话验证通过');

@@ -7,3 +7,7 @@ mvp-server*.log
 data/mvp-uploads/
 data/admin-backend/
 data/migrations/
+
+# Customer enquiries submitted through the website contact form (personal data)
+data/mvp-leads.json
+data/*.tmp
