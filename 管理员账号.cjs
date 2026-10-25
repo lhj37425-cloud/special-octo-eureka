@@ -11,8 +11,8 @@ if(!['初始化','重置','查看'].includes(action)){
   return;
 }
 if(action==='查看'){
-  const account=core.read().admin?.account;
-  console.log(account?`当前管理员账号：${account}`:'尚未创建管理员账号。');
+  const users=core.read().users;
+  console.log(users.length?users.map(u=>`${u.role==='owner'?'主管理员':'子账号'}：${u.account}（${u.name||u.account}）${u.disabled?' · 已停用':''}`).join('\n'):'尚未创建管理员账号。');
   return;
 }
 if(!process.stdin.isTTY){

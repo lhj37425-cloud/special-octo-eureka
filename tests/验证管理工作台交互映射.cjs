@@ -13,9 +13,9 @@ assert.match(store,/request\(`\/api\/records\/\$\{encodeURIComponent\(saved\.id\
 assert.match(store,/request\('\/api\/upload'/);
 assert.ok(server.includes("'/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.js'))]"));
 
-// 每一类可操作按钮都必须有明确处理器，且落到真实保存、上传或本地前台地址。
+// 每一类可操作按钮都必须有明确处理器，且落到真实保存或上传。
 for(const operation of [
-  "act==='public'", "act==='logout'", "act==='nav'||act==='back'",
+  "act==='feature'", "act==='logout'", "act==='nav'||act==='back'",
   "act==='new'", "act==='edit'", "act==='tab'", "act==='save'",
   "act==='publish-edit'", "act==='publish'", "act==='offline'",
   "act==='delete'", "act==='upload'", "act==='remove-media'",
@@ -23,7 +23,7 @@ for(const operation of [
   "act==='clip-up'||act==='clip-down'", "act==='preview'||act==='preview-edit'"
 ]) assert.match(workbench,new RegExp(operation.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 
-assert.match(workbench,/window\.open\(PUBLIC/);
+assert.doesNotMatch(workbench,/查看前台|window\.open\(PUBLIC/);
 assert.match(workbench,/await logoutRequest\(\)/);
 assert.match(workbench,/await saveEditing\(\)/);
 assert.match(workbench,/copy\._action='publish'/);

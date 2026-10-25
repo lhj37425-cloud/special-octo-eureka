@@ -8,7 +8,7 @@
     "管理员:重置密码": "node 管理员账号.cjs 重置",
     "管理员:查看": "node 管理员账号.cjs 查看",
     "验收:首页三语": "node tests/验证首页三语同步.cjs",
-    "验收:后台": "node tests/验证管理工作台交互映射.cjs && node tests/验证真实后台.cjs && node tests/验证后台接口.cjs && node tests/验证前后台联动.cjs && node tests/验证前台语言隔离.cjs && node tests/验证后台资料发布逻辑.cjs && node tests/验证课程专家关联.cjs && node tests/验证前后台资料打通.cjs && node tests/验证首页三语同步.cjs"
+    "验收:后台": "node tests/验证管理工作台交互映射.cjs && node tests/验证真实后台.cjs && node tests/验证多账号权限.cjs && node tests/验证后台接口.cjs && node tests/验证前后台联动.cjs && node tests/验证发布快照与数据保护.cjs && node tests/验证留言与接口防护.cjs && node tests/验证前台语言隔离.cjs && node tests/验证后台资料发布逻辑.cjs && node tests/验证应用案例后台.cjs && node tests/验证课程专家关联.cjs && node tests/验证前后台资料打通.cjs && node tests/验证首页三语同步.cjs"
   },
   "engines": { "node": ">=18" }
 }

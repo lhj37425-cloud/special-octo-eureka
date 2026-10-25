@@ -1,5 +1,0 @@
-<!doctype html><meta charset="utf-8"><script type="module">
-import {readState} from './store.js';
-const origin='http://127.0.0.1:4186';
-addEventListener('message',async e=>{if(e.origin!==origin||e.data?.type!=='demo-read')return;try{const state=await readState();e.source.postMessage({type:'demo-state',request:e.data.request,records:state.records.filter(r=>r.status==='published').map(r=>({id:r.id,type:r.type,category:r.publishedSettings?.category??r.category,order:r.publishedSettings?.order??r.order,experts:r.publishedSettings?.experts??r.experts,published:r.published,updated:r.updated}))},origin)}catch{e.source.postMessage({type:'demo-error'},origin)}});
-</script>

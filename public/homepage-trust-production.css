@@ -1,22 +1,23 @@
 .home-qualifications-layout{grid-template-columns:1fr;gap:28px}
-.home-qualifications-copy>p:not(.eyebrow),.home-qualifications-copy .home-red-rule{display:none}
+.home-qualifications-copy .home-red-rule{display:none}
+.home-qualifications-copy>p:not(.eyebrow){max-width:300px;margin-top:18px}
+.home-qualifications-copy h2{max-width:7.6em}
 .home-qualifications-copy h2,.home-cooperation-heading h2{margin:10px 0 0;font-size:clamp(30px,2.65vw,38px);line-height:1.2;letter-spacing:-.035em}
 .home-qualification-grid{grid-template-columns:repeat(3,minmax(0,1fr));max-width:none}
-.home-qualification-card h3{font-size:18px}
-.home-qualification-card p{font-size:13px}
+.home-qualification-card h3{font-size:15px}
+.home-qualification-card p{font-size:12.5px}
 
 @media(min-width:901px){
   .home-qualifications,.home-cooperation{display:flex;align-items:center;min-height:0;padding:24px 0}
   .home-qualifications{height:min(680px,calc(100svh - 78px))}
   .home-cooperation{height:min(650px,calc(100svh - 78px))}
-  .home-qualifications-layout{min-height:0;gap:20px}
+  .home-qualifications-layout{grid-template-columns:minmax(260px,.62fr) minmax(0,1.38fr);gap:clamp(40px,5vw,80px);align-items:center;min-height:0}
   .home-qualifications-gallery{min-height:0}
-  .home-qualification-grid{gap:12px}
-  .home-qualification-image img{aspect-ratio:1.48}
-  .home-qualification-card{padding-bottom:12px}
-  .home-qualification-card h3{margin:11px 12px 3px;font-size:16px}
-  .home-qualification-card p{margin:0 12px;font-size:12px;line-height:1.5}
-  .home-view-all{margin-top:12px;padding:11px 14px}
+  .home-qualification-grid{gap:28px}
+  .home-qualification-image img{aspect-ratio:1.42}
+  .home-qualification-card h3{margin:18px 0 4px;font-size:15px}
+  .home-qualification-card p{margin:0;font-size:12.5px;line-height:1.5}
+  .home-view-all{margin-top:12px}
   .home-qualifications:has(.home-view-all[aria-expanded=true]) .home-qualification-grid{max-height:min(480px,calc(100svh - 190px));padding-right:10px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--red) #e8e6e0}
   .home-qualifications:has(.home-view-all[aria-expanded=true]) .home-qualification-grid::-webkit-scrollbar{width:8px}
   .home-qualifications:has(.home-view-all[aria-expanded=true]) .home-qualification-grid::-webkit-scrollbar-thumb{background:var(--red)}
