@@ -26,6 +26,9 @@ const lead=(extra={})=>fetch(front+'/api/leads',{method:'POST',headers:{'Content
  res=await fetch(front+'/en/index.html?x=1',{redirect:'manual'});assert.equal(res.status,301);assert.equal(res.headers.get('location'),'/en/?x=1');
  res=await fetch(front+'/zh/%E0%A4%A/');assert.equal(res.status,400);
  console.log('index.html 跳转与错误地址：通过');
+ // 首页资质放大框的关闭按钮读屏文字随页面语言变化
+ for(const [language,label] of [['zh','关闭图片预览'],['en','Close image preview'],['vi','Đóng ảnh xem trước']]){const html=await (await fetch(`${front}/${language}/`)).text();assert.ok(html.includes(`closeButton.setAttribute('aria-label',"${label}")`),`${language} 首页关闭按钮文字不对`);if(language!=='zh')assert.ok(!html.includes('关闭图片预览'))}
+ console.log('首页关闭按钮三语读屏文字：通过');
  // 上传：30MB 以内的视频可以上传，超过 30MB 给出明确提示
  res=await fetch(back+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:'guard-admin',password:'1234567890'})});const data=await res.json();
  const h={'Content-Type':'application/json',cookie:res.headers.getSetCookie().map(c=>c.split(';')[0]).join('; '),'x-csrf-token':data.csrf};
