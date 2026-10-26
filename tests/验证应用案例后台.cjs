@@ -1,6 +1,6 @@
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'evoldream-cases-test-'));
-process.env.ADMIN_DATA_DIR=root;
+process.env.ADMIN_DATA_DIR=root;process.env.MVP_DATA_DIR=root;
 const core=require('../后台服务.cjs');
 const cases=require('../cases.cjs'),home=require('../business-scenarios.cjs');
 const publicRoot=path.join(__dirname,'..','public');

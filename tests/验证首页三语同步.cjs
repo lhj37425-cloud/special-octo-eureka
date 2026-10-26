@@ -1,6 +1,6 @@
 const assert=require('assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
 // 使用临时后台数据，测试结果不依赖真实数据里有哪些已发布案例
-const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-home-'));process.env.ADMIN_DATA_DIR=temp;
+const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-home-'));process.env.ADMIN_DATA_DIR=temp;process.env.MVP_DATA_DIR=temp;
 const core=require('../后台服务.cjs');
 const root=path.join(__dirname,'..');
 const server=fs.readFileSync(path.join(root,'server.js'),'utf8');

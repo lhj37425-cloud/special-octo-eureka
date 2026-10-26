@@ -1,6 +1,6 @@
 const assert=require('assert/strict'),child=require('child_process'),fs=require('fs'),os=require('os'),path=require('path');
 const root=path.join(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-integration-')),admin=path.join(temp,'admin'),mvp=path.join(temp,'mvp'),port=4800+Math.floor(Math.random()*200),base=`http://127.0.0.1:${port}`;
-process.env.ADMIN_DATA_DIR=admin;const corePath=path.join(root,'后台服务.cjs');delete require.cache[require.resolve(corePath)];const core=require(corePath);
+process.env.ADMIN_DATA_DIR=admin;process.env.MVP_DATA_DIR=mvp;const corePath=path.join(root,'后台服务.cjs');delete require.cache[require.resolve(corePath)];const core=require(corePath);
 core.initialize('test-admin','1234567890');const image=core.file('封面.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),video=core.file('预览.mp4',Buffer.from([0,0,0,24,102,116,121,112,105,115,111,109]),'video/mp4');let record=core.saveRecord({type:'courses',order:1,draft:{zh:{name:'联动测试课程',description:'只应出现在中文前台',category:'测试',image,attachments:[video],clips:[]}}});core.publish(record.id);
 // 同时存在已发布的资质和应用案例时，课程页、讲师页仍能正常打开
 for(const [type,extra] of [['qualifications',{}],['cases',{industry:'测试行业',problem:'问题',steps:'步骤',people:'分工',deliverables:'成果'}]]){const r=core.saveRecord({type,draft:{zh:{name:`联动测试${type}`,description:'说明',image:core.file(`${type}.png`,Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),attachments:[],clips:[],...extra},en:{},vi:{}}});core.publish(r.id)}

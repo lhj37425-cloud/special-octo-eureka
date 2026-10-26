@@ -1,11 +1,11 @@
 const assert=require('assert/strict'),child=require('child_process'),fs=require('fs'),os=require('os'),path=require('path');
-const root=path.join(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-snapshot-')),admin=path.join(temp,'admin'),port=5000+Math.floor(Math.random()*200),base=`http://127.0.0.1:${port}`;
-process.env.ADMIN_DATA_DIR=admin;const corePath=path.join(root,'后台服务.cjs');delete require.cache[require.resolve(corePath)];const core=require(corePath);
+const root=path.join(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-snapshot-')),admin=path.join(temp,'admin'),mvp=path.join(temp,'mvp'),port=5000+Math.floor(Math.random()*200),base=`http://127.0.0.1:${port}`;
+process.env.ADMIN_DATA_DIR=admin;process.env.MVP_DATA_DIR=mvp;const corePath=path.join(root,'后台服务.cjs');delete require.cache[require.resolve(corePath)];const core=require(corePath);
 core.initialize('test-admin','1234567890');const png=name=>core.file(name,Buffer.from([137,80,78,71,13,10,26,10]),'image/png');
 const expert=name=>{const r=core.saveRecord({type:'experts',draft:{zh:{name,description:'专家简介',image:png(`${name}.png`),attachments:[],clips:[]}}});core.publish(r.id);return r.id};
 const first=expert('快照专家甲'),second=expert('快照专家乙');
 let course=core.saveRecord({type:'courses',order:1,experts:[first],draft:{zh:{name:'快照课程',description:'课程简介',image:png('课程.png'),attachments:[],clips:[]}}});course=core.publish(course.id);
-const server=child.spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ADMIN_DATA_DIR:admin,MVP_DATA_DIR:path.join(temp,'mvp'),PORT:String(port)},stdio:'ignore'});
+const server=child.spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,ADMIN_DATA_DIR:admin,MVP_DATA_DIR:mvp,PORT:String(port)},stdio:'ignore'});
 const wait=async()=>{for(let i=0;i<100;i++){try{return await fetch(base+'/zh/')}catch{await new Promise(resolve=>setTimeout(resolve,100))}}throw Error('前台未启动')};
 const teacherLink=async()=>((await (await fetch(base+`/zh/courses/${course.id}/`)).text()).match(/href="\/zh\/teachers\/(exp-[^/"]+)\/"/)||[])[1];
 (async()=>{try{await wait();assert.equal(await teacherLink(),first);

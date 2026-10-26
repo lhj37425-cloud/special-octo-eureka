@@ -1,6 +1,6 @@
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'evoldream-e2e-'));
-process.env.ADMIN_DATA_DIR=root;process.env.ADMIN_PORT='4291';process.env.PORT='4292';
+process.env.ADMIN_DATA_DIR=root;process.env.MVP_DATA_DIR=root;process.env.ADMIN_PORT='4291';process.env.PORT='4292';
 const core=require('../后台服务.cjs');core.initialize('tester','test-password-123');
 require('../后台服务器.js');require('../server.js');
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));

@@ -1,5 +1,6 @@
 const assert=require('assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
-const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-admin-test-'));process.env.ADMIN_DATA_DIR=temp;
+// 后台数据和咨询留言都放在临时文件夹，备份恢复不会读写真实的 data；退出时（包括断言失败）删除临时文件夹
+const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-admin-test-'));process.env.ADMIN_DATA_DIR=temp;process.env.MVP_DATA_DIR=temp;process.on('exit',()=>fs.rmSync(temp,{recursive:true,force:true}));
 const core=require('../后台服务.cjs');
 assert.equal(core.login('admin','wrong'),null);assert.equal(core.initialize('admin','1234567890'),'admin');const token=core.login('admin','1234567890');assert.ok(token);assert.equal(core.auth(token).role,'owner');
 let r=core.saveRecord({type:'courses',draft:{zh:{name:'测试课程',description:'用于隔离验证',image:null,attachments:[],clips:[]}}});assert.throws(()=>core.publish(r.id),/封面/);const stale=JSON.parse(JSON.stringify(r));r=core.saveRecord({...r,draft:{...r.draft,zh:{...r.draft.zh,image:{id:'cover.png'}}}});assert.throws(()=>core.saveRecord(stale),/刚被.*修改，请刷新/);core.publish(r.id);assert.equal(core.list(true).length,1);assert.equal(core.publicFile('cover.png'),path.join(temp,'uploads','cover.png'));core.offline(r.id);assert.equal(core.list(true).length,0);core.remove(r.id);assert.equal(core.list().length,0);console.log('真实后台核心验证通过');

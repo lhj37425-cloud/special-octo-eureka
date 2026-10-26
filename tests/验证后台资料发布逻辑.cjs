@@ -1,6 +1,6 @@
 const assert=require('assert'),fs=require('fs'),os=require('os'),path=require('path');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'evoldream-admin-test-'));
-process.env.ADMIN_DATA_DIR=root;
+process.env.ADMIN_DATA_DIR=root;process.env.MVP_DATA_DIR=root;
 const core=require('../后台服务.cjs');
 const {render}=require('../homepage-trust-production.cjs');
 try{
