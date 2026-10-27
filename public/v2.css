@@ -111,8 +111,8 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .page-hero .svc-switch,.page-hero .case-stats{color:var(--text)}
 .page-hero .svc-switch p,.page-hero .case-stats p{color:var(--muted)}
 .breadcrumbs{font-size:13px;color:var(--muted)}
-.page-hero .breadcrumbs{color:var(--muted-d)}
-.page-hero .breadcrumbs a{color:var(--gold-soft)}
+.page-hero .breadcrumbs,.v2-dark .breadcrumbs{color:var(--muted-d)}
+.page-hero .breadcrumbs a,.v2-dark .breadcrumbs a{color:var(--gold-soft)}
 @media(max-width:700px){.breadcrumbs{font-size:12px}}
 
 /* 点页内链接（比如首页数字条）跳过去时，只让出吸顶页头的高度 */

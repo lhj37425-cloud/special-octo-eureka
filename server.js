@@ -21,7 +21,7 @@ function content(){
   }
   // 排序与关联专家取发布时的快照，未发布的草稿修改不影响前台
   const settings=record.publishedSettings||record;
-  const item={id:record.id,order:settings.order,published:true,translations,languages,teacherId:settings.experts?.[0]||'',...fields(record.published.zh||{})};
+  const item={id:record.id,order:settings.order,published:true,translations,languages,teacherId:settings.experts?.[0]||'',teacherIds:settings.experts||[],...fields(record.published.zh||{})};
   const key=record.type==='experts'?'teachers':record.type;
   db[key].push(item);
  }
