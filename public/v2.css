@@ -1,6 +1,9 @@
 /* 改版 v2 · 第 1 步公共样式：颜色、标题字体、页头页脚、按钮、卡片、表单、内页首屏。
    每个页面最后加载这个文件，覆盖打包样式 _astro/SiteLayout.*.css 和 mvp.css（打包样式不改）。
    各页面自己的版式（首页、课程、专家）在后面几步改。设计规范见概念稿 v2 的 design-system.html。 */
+/* 宋体网页字体：只含网站上用宋体显示的字（改版工具/生成宋体网页字体.cjs 生成，标题文案、课程名、专家名改了要重新生成）；
+   字体里没有的字，按 --serif 后面的顺序用电脑上装的宋体补上 */
+@font-face{font-family:"EVOL Serif";src:url(/fonts/evol-serif-700.woff2) format("woff2");font-weight:700;font-style:normal;font-display:swap}
 :root{
   --red:#94070a;--red-2:#b81820;--red-deep:#5e0407;--soft:#f8eeee;
   --ink:#1a0d0e;--ink-2:#241012;--ink-3:#120809;
@@ -9,7 +12,7 @@
   --text:#2a2320;--muted:#5f5650;--muted-d:#c9bdb4;
   /* 页面底色改成米白后，原来用 --warm 拉开层次的区块改用白色 */
   --warm:#fff;
-  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+  --serif:"EVOL Serif","Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
   --r:16px;--sh-sm:0 2px 10px rgba(40,20,16,.05);--sh-md:0 14px 40px rgba(40,20,16,.1);
   /* 吸顶页头的高度；“一屏”= 视口高度 − 页头高度 */
   --header-h:76px;--screen-h:calc(100svh - var(--header-h));
