@@ -98,11 +98,13 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .consent,.form-note{font-size:12px;color:var(--muted)}
 @media(max-width:700px){.form-grid label,.form-note,.consent{font-size:12px}}
 
-/* 内页首屏：暖黑色带，淡淡的红色光晕和细网格 */
-.page-hero{background:radial-gradient(900px 420px at 88% -10%,rgba(184,24,32,.38),transparent 62%),linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px) 0 0/56px 56px,var(--ink);border-bottom:0;color:#f3ece6}
-.page-hero h1{color:#fff}
-.page-hero p{color:var(--muted-d)}
-.page-hero .eyebrow,.page-hero .text-link{color:var(--gold-soft)}
+/* 深色色带：内页首屏 .page-hero，以及首页首屏、业务场景、合作模式这些加了 .v2-dark 的区块。暖黑底，淡淡的红色光晕和细网格 */
+.page-hero,.v2-dark{background:radial-gradient(900px 420px at 88% -10%,rgba(184,24,32,.38),transparent 62%),linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px) 0 0/56px 56px,linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px) 0 0/56px 56px,var(--ink);border-bottom:0;color:#f3ece6}
+.page-hero h1,.v2-dark h1,.v2-dark h2,.v2-dark h3{color:#fff}
+.page-hero p,.v2-dark p{color:var(--muted-d)}
+.page-hero .eyebrow,.page-hero .text-link,.v2-dark .eyebrow,.v2-dark .text-link{color:var(--gold-soft)}
+.button.ghost{border-color:rgba(255,255,255,.38);background:transparent;color:#fff}
+.button.ghost:hover{background:rgba(255,255,255,.08)}
 .page-hero .button.outline{border-color:rgba(255,255,255,.38);background:transparent;color:#fff}
 .page-hero .button.outline:hover{background:rgba(255,255,255,.08)}
 /* 首屏里的白色卡片（服务页的栏目切换、案例页的数字）保持深色字 */
@@ -112,3 +114,22 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .page-hero .breadcrumbs{color:var(--muted-d)}
 .page-hero .breadcrumbs a{color:var(--gold-soft)}
 @media(max-width:700px){.breadcrumbs{font-size:12px}}
+
+/* 点页内链接（比如首页数字条）跳过去时，只让出吸顶页头的高度 */
+html{scroll-padding-top:var(--header-h)}
+section{scroll-margin-top:0}
+
+/* 联系区（首页、关于我们、三个服务页等 15 页）：深色底 + 白色表单卡，提交按钮占满一行；
+   首页上表单卡往上压进常见问题区，见 v2-home.css */
+.contact-section{padding:64px 0;background:radial-gradient(120% 130% at 10% 0%,#3a1416,var(--ink) 60%)}
+.contact-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center}
+.contact-copy .eyebrow{color:var(--gold-soft)}
+.contact-copy h2{font-size:40px;color:#fff}
+.contact-copy>p:not(.eyebrow){color:rgba(255,255,255,.82)}
+.contact-line{background:var(--gold)}
+.contact-copy .contact-small{color:var(--muted-d)}
+.contact-form{padding:34px 36px;border-radius:22px;box-shadow:0 30px 80px rgba(20,8,9,.28)}
+.form-bottom{flex-direction:column;align-items:stretch;gap:16px}
+.form-bottom .button{width:100%;min-height:48px;justify-content:center;font-size:15px}
+@media(max-width:1024px){.contact-layout{grid-template-columns:1fr;gap:32px}}
+@media(max-width:700px){.contact-section{padding:48px 0}.contact-copy h2{font-size:30px}.contact-form{padding:24px 20px}}

@@ -1,0 +1,181 @@
+/* 改版 v2 · 第 2 步首页：首屏 + 数字条、01 公司介绍、02 服务体系、03 业务场景、04 公司资质、05 合作模式、06 常见问题。
+   只在首页加载（server.js 首页路由插入）；联系区、深色色带 .v2-dark、按钮这些公共样式在 v2.css。
+   电脑上每块不超过一屏：1366×768 下导航以下 692px，首屏加数字条正好一屏 */
+:root{--trust-h:112px}
+
+/* 区块标题行：左边小标签 + 标题，右边一段说明 */
+.home-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:30px}
+.home-head h2{margin-top:12px;font-size:34px;text-wrap:balance}
+.home-head>p,.home-head>div+div{max-width:440px;font-size:15px}
+.home-head>p,.home-head>div+div>p{color:var(--muted)}
+.v2-dark .home-head>p,.v2-dark .home-head>div+div>p{color:var(--muted-d)}
+
+/* 首屏（深色）：左边标语和按钮，右边配图；电脑上和下面的数字条合起来正好一屏 */
+.home-hero .container{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding:48px 0}
+@media(min-width:1101px){.home-hero .container{min-height:calc(var(--screen-h) - var(--trust-h))}}
+.home-hero h1{margin:18px 0;font-size:clamp(40px,4.3vw,58px);line-height:1.16;text-wrap:balance}
+.home-hero h1 em{font-style:normal;color:var(--gold-soft)}
+.home-hero .home-hero-lead{margin-bottom:28px;font-size:17px;line-height:1.75}
+.home-hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:22px}
+.home-hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.home-hero-tags li{display:inline-flex;align-items:center;height:28px;padding:0 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;font-size:13px;color:#e6dcd4}
+.home-hero-media{position:relative;margin:0}
+.home-hero-media img{width:100%;aspect-ratio:4/3;object-fit:cover;object-position:62% 45%;border:1px solid var(--line-d);border-radius:20px}
+.home-hero-media figcaption{position:absolute;left:-28px;bottom:28px;display:flex;align-items:center;gap:12px;padding:14px 20px;border-radius:14px;background:#fff;box-shadow:var(--sh-md);font-size:14px;font-weight:600;color:var(--text)}
+.home-hero-media figcaption span{width:4px;height:22px;border-radius:2px;background:var(--red)}
+
+/* 数字条：点一项跳到对应板块 */
+.home-trust{background:var(--ink-2);box-shadow:inset 0 1px 0 var(--line-d)}
+.home-trust-grid{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column}
+.home-trust a{display:flex;flex-direction:column;justify-content:center;align-items:center;height:var(--trust-h);padding:0 16px;border-right:1px solid var(--line-d);text-align:center}
+.home-trust a:last-child{border-right:0}
+.home-trust a:hover{background:rgba(255,255,255,.04)}
+.home-trust a:focus-visible{outline:2px solid var(--gold);outline-offset:-4px}
+.home-trust b{font:700 38px/1 var(--serif);color:#fff}
+.home-trust em{font-style:normal;color:var(--gold-soft)}
+.home-trust small{margin-top:10px;font-size:13px;color:var(--muted-d)}
+html:not(:lang(zh)) .home-trust b{font-size:32px;white-space:nowrap}
+
+/* 01 公司介绍：左边标题和简介，右边平台背景和 4 个关键信息 */
+.company-introduction-section{height:auto;display:block;padding:64px 0;border-bottom:0;background:var(--paper)}
+.home-about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:64px;align-items:center}
+.home-about-copy h2{margin:14px 0 20px;font-size:38px;text-wrap:balance}
+.home-about-copy>p:not(.eyebrow){margin-bottom:22px;font-size:16px;line-height:1.85;color:var(--muted)}
+.home-quote{margin:0 0 14px;padding:20px 24px;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:12px;background:#fff;box-shadow:var(--sh-sm);font:700 17px/1.75 var(--serif);color:var(--text)}
+.home-kv{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0}
+.home-kv div{padding:16px 20px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.home-kv dt{margin-bottom:4px;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--red)}
+.home-kv dd{margin:0;font:700 16px/1.6 var(--serif);color:var(--text)}
+
+/* 02 产品服务体系：三张服务卡，下面一条工作方式 */
+.services-section{padding:64px 0;background:#fff}
+.home-svc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.home-svc{display:flex;flex-direction:column;padding:30px 28px;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--sh-sm);transition:border-color .2s,box-shadow .2s,transform .2s}
+.home-svc:hover{border-color:rgba(148,7,10,.35);box-shadow:var(--sh-md);transform:translateY(-2px)}
+.home-svc-icon{display:grid;place-items:center;width:48px;height:48px;margin-bottom:18px;border-radius:12px;background:var(--soft);color:var(--red)}
+.home-svc small{font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--red)}
+.home-svc h3{margin:6px 0 10px;font-size:22px}
+.home-svc p{margin-bottom:16px;font-size:14.5px;color:var(--muted)}
+.home-svc .text-link{margin-top:auto;font-size:14px}
+.home-flow{display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr));margin-top:20px;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--paper-2)}
+.home-flow-core{padding:16px 24px;background:var(--ink)}
+.home-flow-core b{display:block;font:700 17px/1.5 var(--serif);color:#fff}
+.home-flow-core span{font-size:12px;letter-spacing:.12em;color:var(--gold-soft)}
+.home-flow p{display:flex;align-items:center;gap:12px;margin:0;padding:16px 22px;border-left:1px solid var(--line);font-size:14.5px;color:var(--text)}
+.home-flow i{font:700 15px/1 var(--serif);font-style:normal;color:var(--red)}
+
+/* 03 业务场景（深色）：上面一张大图，下面 3 个案例 */
+/* 越南语、英文的标题和案例名比中文长，这块留得紧一点，1366×768 下才不超一屏 */
+.business-scenarios{padding:56px 0}
+.home-scn-more{display:inline-block;margin-top:8px;font-size:14px;font-weight:700;color:var(--gold-soft)}
+.home-scn-hero{position:relative;height:240px;overflow:hidden;border:1px solid var(--line-d);border-radius:var(--r);background:#000}
+.home-scn-hero img{width:100%;height:100%;object-fit:cover}
+.home-scn-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,8,9,.9),rgba(18,8,9,.6) 40%,rgba(18,8,9,0) 72%)}
+.home-scn-tag{position:absolute;top:14px;right:16px;z-index:1;padding:3px 10px;border-radius:999px;background:rgba(18,8,9,.66);font-size:12px;color:#efe6df}
+.home-scn-cap{position:absolute;left:32px;bottom:28px;z-index:1;max-width:560px}
+.home-scn-cap small{font-size:12px;letter-spacing:.14em;color:var(--gold-soft)}
+.home-scn-cap b{font-weight:inherit}
+.home-scn-cap strong{display:block;margin:6px 0 8px;font:700 28px/1.3 var(--serif);color:#fff}
+.home-scn-cap>span{font-size:14px;color:#e6dcd4}
+.home-scn-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+.home-scn-tab{display:block;padding:18px 20px;border:1px solid var(--line-d);border-radius:14px;background:rgba(255,255,255,.04);transition:border-color .2s,background .2s}
+.home-scn-tab.is-active,.home-scn-tab:hover{border-color:var(--gold);background:rgba(217,168,95,.09)}
+.home-scn-tab:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.home-scn-tab-top{display:flex;align-items:baseline;gap:10px}
+.home-scn-tab em{font:700 15px/1 var(--serif);font-style:normal;color:var(--gold-soft)}
+.home-scn-tab small{font-size:12px;color:var(--muted-d)}
+.home-scn-tab h3{margin:10px 0 6px;font-size:18px;line-height:1.3}
+.home-scn-tab p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-size:13.5px;line-height:1.6}
+
+/* 04 公司资质：默认显示 3 项，第 4 格“共 N 项”点开看全部；点图片放大 */
+.home-qualifications{padding:64px 0;background:var(--paper)}
+.home-cred{display:grid;grid-template-columns:300px minmax(0,1fr);gap:48px;align-items:center}
+.home-qualifications-copy h2{margin:12px 0 14px;font-size:34px;text-wrap:balance}
+.home-qualifications-copy>p:not(.eyebrow){margin-bottom:12px;font-size:15px;color:var(--muted)}
+.home-qualifications-copy>.home-cred-note{font-size:13px}
+html:not(:lang(zh)) .home-qualifications-copy h2{font-size:28px}
+.home-qualification-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.home-qualification-card{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--sh-sm)}
+.home-qualification-card[hidden]{display:none}
+.home-qualification-image{display:block;width:100%;padding:0;border:0;background:linear-gradient(#f8f4ef,#eee6dd);cursor:zoom-in;appearance:none}
+.home-qualification-image:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.home-qualification-image img{width:100%;aspect-ratio:16/10;object-fit:contain;padding:10px 12px}
+.home-qualification-card h3{margin:0;padding:10px 12px 4px;font-size:14px;line-height:1.5;text-wrap:balance}
+.home-qualification-card p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 12px 12px;font-size:12.5px;line-height:1.6;color:var(--muted)}
+.home-view-all{display:flex;flex-wrap:wrap;align-content:center;align-items:center;gap:12px 8px;padding:18px;border:0;border-radius:14px;background:var(--ink);text-align:left;cursor:pointer}
+.home-view-all:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.home-view-all b{flex-basis:100%;font:700 30px/1.2 var(--serif);color:var(--gold-soft)}
+.home-view-all span{display:inline-flex;align-items:center;min-height:32px;padding:6px 14px;line-height:1.4;border:1px solid rgba(217,168,95,.55);border-radius:999px;font-size:13px;font-weight:600;color:#f3e2c4}
+.home-view-all:hover span{background:rgba(217,168,95,.14)}
+.home-view-all i{font-style:normal;color:var(--gold-soft)}
+.home-qualification-dialog{position:fixed;top:50%;left:50%;width:min(900px,92vw);max-height:92vh;margin:0;padding:0;overflow:hidden;border:0;border-radius:var(--r);background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.45);transform:translate(-50%,-50%)}
+.home-qualification-dialog::backdrop{background:rgba(18,8,9,.74)}
+.home-qualification-dialog>div{padding:18px 72px 16px 22px;border-bottom:1px solid var(--line)}
+.home-qualification-dialog strong{font:700 17px/1.4 var(--serif);color:var(--text)}
+.home-qualification-dialog>img{display:block;width:100%;max-height:calc(92vh - 64px);object-fit:contain;background:#f8f4ef}
+
+/* 05 合作模式（深色）：三步 */
+.home-cooperation{padding:64px 0}
+.home-cooperation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:0;padding:0;list-style:none}
+.home-cooperation-grid li{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;column-gap:14px;padding:26px 28px 28px;border:1px solid var(--line-d);border-radius:var(--r);background:rgba(255,255,255,.04)}
+.home-cooperation-number{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--gold-soft);font:700 16px/1 var(--serif);color:var(--ink)}
+.v2-dark .home-cooperation-stage{margin:0;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--gold-soft)}
+.home-cooperation-grid h3{grid-column:1/-1;margin:18px 0 10px;font-size:22px}
+.home-cooperation-grid li>p:last-child{grid-column:1/-1;margin:0;font-size:14.5px}
+.home-cooperation-grid li:not(:last-child):after{content:"→";position:absolute;top:50%;right:-27px;z-index:1;display:grid;place-items:center;width:30px;height:30px;border:1px solid rgba(217,168,95,.5);border-radius:50%;background:var(--ink);font-size:14px;color:var(--gold-soft);transform:translateY(-50%)}
+
+/* 06 合作之前（常见问题，米色底） */
+.home-faq{padding:64px 0;background:var(--paper)}
+.home-faq .faq-layout{grid-template-columns:340px minmax(0,1fr);gap:64px;align-items:start}
+.home-faq .faq-layout h2{margin:12px 0 22px;font-size:34px}
+.home-faq .faq-layout>div>.text-link{display:inline-flex;align-items:center;gap:10px;height:44px;margin-top:0;padding:0 22px;border:1px solid var(--red);border-radius:999px;font-size:14px}
+.home-faq .faq-layout>div>.text-link:hover{background:var(--soft)}
+.home-faq .faq-list{border-top:1px solid var(--line)}
+.home-faq .faq-list details{border-bottom:1px solid var(--line)}
+.home-faq .faq-list summary{padding:20px 0;font:700 18px/1.5 var(--serif);color:var(--text)}
+.home-faq .faq-list summary span{display:grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;font-size:18px;color:var(--red)}
+.home-faq .faq-list details[open] summary span{border-color:var(--red);background:var(--red);color:#fff}
+.home-faq .faq-list details p{padding:0 50px 22px 0;font-size:15px;line-height:1.85}
+
+/* 联系区的表单卡往上压进常见问题区 72px；平板和手机上不压线，按上下顺序排 */
+@media(min-width:1025px){
+  .home-faq{padding-bottom:136px}
+  .home-faq~.contact-section{padding-top:0}
+  .home-faq~.contact-section .contact-form{position:relative;z-index:2;margin-top:-72px}
+}
+
+@media(max-width:1024px){
+  .home-hero .container,.home-about,.home-cred,.home-faq .faq-layout{grid-template-columns:1fr}
+  .home-hero .container{gap:36px}
+  .home-hero-media img{aspect-ratio:16/10}
+  .home-hero-media figcaption{left:16px}
+  .home-flow{grid-template-columns:1fr 1fr}
+  .home-flow p{border-top:1px solid var(--line)}
+  .home-qualification-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-faq .faq-layout{gap:28px}
+}
+@media(max-width:760px){
+  .home-head{display:block;margin-bottom:24px}
+  .home-head h2{font-size:27px}
+  .home-head>p,.home-head>div+div{margin-top:10px}
+  .company-introduction-section,.services-section,.business-scenarios,.home-qualifications,.home-cooperation,.home-faq{padding:44px 0}
+  .home-hero .container{padding:36px 0 40px}
+  .home-hero h1{font-size:38px}
+  .home-hero-media figcaption{left:12px;bottom:12px;padding:10px 14px;font-size:13px}
+  .home-trust-grid{grid-auto-flow:row;grid-template-columns:1fr 1fr}
+  .home-trust a{height:auto;padding:20px 12px;border-bottom:1px solid var(--line-d)}
+  .home-trust a:nth-child(2n){border-right:0}
+  .home-trust b{font-size:28px}
+  .home-about-copy h2{font-size:28px}
+  .home-kv,.home-svc-grid,.home-scn-tabs,.home-cooperation-grid,.home-flow{grid-template-columns:1fr}
+  .home-flow p{border-left:0}
+  .home-scn-hero{height:220px}
+  .home-scn-hero:after{background:linear-gradient(0deg,rgba(18,8,9,.92) 12%,rgba(18,8,9,.5) 62%,rgba(18,8,9,.05))}
+  .home-scn-cap{left:18px;right:18px;bottom:18px}
+  .home-scn-cap strong{font-size:21px}
+  .home-qualification-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .home-qualifications-copy h2,.home-faq .faq-layout h2{font-size:27px}
+  .home-cooperation-grid li:not(:last-child):after{content:"↓";top:auto;right:auto;bottom:-26px;left:50%;transform:translateX(-50%)}
+  .home-faq .faq-list summary{font-size:16.5px}
+  .home-faq .faq-list details p{padding-right:0}
+}

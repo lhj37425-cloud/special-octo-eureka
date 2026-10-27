@@ -16,9 +16,12 @@ const {render}=require('../homepage-sections.cjs');
 try{
  for(const language of ['zh','en','vi']){
   const html=render(language);
-  for(const marker of ['company-introduction-section','data-triad-home','business-scenarios','data-triad-label','data-triad-list'])assert.ok(html.includes(marker),`${language} 缺少共享首页结构：${marker}`);
+  for(const marker of ['home-hero','home-trust','company-introduction-section','data-service-grid','data-service-flow','business-scenarios'])assert.ok(html.includes(marker),`${language} 缺少共享首页结构：${marker}`);
   for(const route of ['training','agents','implementation','cases',...slugs.map(slug=>`cases/${slug}`)])assert.ok(html.includes(`/${language}/${route}/`),`${language} 缺少本语言跳转：${route}`);
-  assert.strictEqual((html.match(/data-triad=/g)||[]).length,3,`${language} 缺少三项服务交互入口`);
+  assert.strictEqual((html.match(/data-service=/g)||[]).length,3,`${language} 缺少三项服务入口`);
+  // 数字条的案例数按后台已发布的案例读取（这里发布了 3 个），没有资质时不显示资质那一项
+  assert.match(html,/href="#scenarios"><b>3</,`${language} 数字条的案例数不对`);
+  assert.ok(!html.includes('href="#credentials"'),`${language} 没有资质时数字条不该显示资质`);
   if(language!=='zh')assert.ok(!html.includes('/zh/'),`${language} 首页不应链接到中文路径`);
  }
 }finally{fs.rmSync(temp,{recursive:true,force:true})}
