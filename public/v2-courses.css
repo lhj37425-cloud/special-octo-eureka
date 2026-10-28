@@ -15,13 +15,13 @@
 .button.white:hover{background:var(--soft)}
 
 /* 能点的卡片：鼠标移上去轻轻浮起，键盘选中时有红色框 */
-.v2-course,.v2-lead2,.v2-adv,.v2-person,.v2-hcard{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
-.v2-course:hover,.v2-lead2:hover,.v2-adv:hover,.v2-person:hover,.v2-hcard:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
-.v2-course:focus-visible,.v2-lead2:focus-visible,.v2-adv:focus-visible,.v2-person:focus-visible,.v2-hcard:focus-visible,.v2-play:focus-visible,.v2-more:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.v2-course,.v2-lead2,.v2-person,.v2-hcard{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.v2-course:hover,.v2-lead2:hover,.v2-person:hover,.v2-hcard:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.v2-course:focus-visible,.v2-lead2:focus-visible,.v2-person:focus-visible,.v2-hcard:focus-visible,.v2-play:focus-visible,.v2-more:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .v2-dark .v2-play:focus-visible{outline-color:var(--gold)}
 @media(prefers-reduced-motion:reduce){
-  .v2-course,.v2-lead2,.v2-adv,.v2-person,.v2-hcard{transition:none}
-  .v2-course:hover,.v2-lead2:hover,.v2-adv:hover,.v2-person:hover,.v2-hcard:hover{transform:none}
+  .v2-course,.v2-lead2,.v2-person,.v2-hcard{transition:none}
+  .v2-course:hover,.v2-lead2:hover,.v2-person:hover,.v2-hcard:hover{transform:none}
 }
 
 /* 打勾清单：资历、经历、讲师卡上的三条 */
@@ -51,7 +51,7 @@
 .v2-course-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
 .v2-who{display:flex;align-items:center;gap:10px;min-width:0;font-size:13.5px;color:var(--muted)}
 .v2-who img{flex:none;width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:50% 20%}
-.v2-course .text-link,.v2-person .text-link,.v2-hcard .text-link,.v2-lead2 .text-link,.v2-adv .text-link{flex:none;font-size:14px;color:var(--red)}
+.v2-course .text-link,.v2-person .text-link,.v2-hcard .text-link,.v2-lead2 .text-link{flex:none;font-size:14px;color:var(--red)}
 .v2-custom{display:flex;flex-direction:column;justify-content:center;padding:32px 30px;border-radius:18px;background:radial-gradient(120% 90% at 100% 0%,rgba(184,24,32,.35),transparent 60%),var(--ink);color:#f3ece6}
 .v2-custom h3{margin:0 0 10px;font-size:24px;color:#fff}
 .v2-custom p{font-size:14px;color:var(--muted-d)}
@@ -147,45 +147,33 @@
 .v2-duo.is-single .v2-enrol-copy p{margin-inline:auto}
 
 /* ———— 专家列表 ———— */
-/* 首屏：4 个可核实的事实，每条写明是谁的 */
-.v2-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:30px;border-top:1px solid var(--line-d)}
-.v2-facts div{padding:22px 28px 0;border-left:1px solid var(--line-d)}
-.v2-facts div:first-child{padding-left:0;border-left:0}
-.v2-facts b{display:block;font:700 26px/1.25 var(--serif);color:#fff}
-.v2-facts em{margin-left:4px;font-style:normal;font-size:18px;color:var(--gold-soft)}
-.v2-facts span{display:block;margin-top:6px;font-size:13px;line-height:1.6;color:var(--muted-d)}
-
-/* 四组都在浅色底上：01 主讲专家、02 班主任与项目负责人（同样的大卡，紧接在主讲下面）、03 技术顾问、04 讲师团队 */
-.v2-group{padding:64px 0;background:var(--paper)}
-.v2-group-staff{padding-top:8px}
-.v2-group-advisor{background:var(--paper-2)}
-.v2-group-team{padding:48px 0}
+/* 一人一张表（2026-10-28）：页面上不显示类别名，各块连成一片，块和块之间只留卡片间距；大卡每行单独一块，小卡一块 */
+.v2-group{padding:0;background:var(--paper)}
+.v2-group+.v2-group{padding-top:24px}
+.page-hero+.v2-group{padding-top:72px}
+.v2-group:last-child,.v2-group:has(+.v2-cta){padding-bottom:88px}
+/* 只给读屏软件读的标题 */
+.v2-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .v2-lead-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
-.v2-lead2{display:grid;grid-template-columns:200px minmax(0,1fr);gap:30px;align-items:center;padding:28px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm)}
-.v2-lead2-photo{aspect-ratio:3/4;border-radius:14px}
-.v2-lead2-photo.is-round{width:172px;justify-self:center}
+.v2-lead2{display:grid;grid-template-columns:200px minmax(0,1fr);gap:30px;align-items:start;padding:28px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm)}
+.v2-lead2-photo{width:172px;margin-top:4px;justify-self:center}
 .v2-focus{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:700;color:var(--red)}
 .v2-lead2 h3{margin:12px 0 4px;font-size:28px}
-.v2-lead2-role{display:block;font-size:14px;line-height:1.6;color:var(--muted)}
 .v2-lead2-body>p{margin:12px 0 14px;font-size:15px;line-height:1.7;color:var(--text)}
 .v2-lead2 .v2-checks{margin-bottom:18px}
 .v2-lead2 .v2-checks li{font-size:14px}
 .v2-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .v2-tags span{display:inline-flex;align-items:center;min-height:26px;padding:2px 11px;border-radius:999px;background:var(--soft);font-size:12.5px;color:var(--red)}
-.v2-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
-.v2-adv{display:grid;grid-template-columns:168px minmax(0,1fr);gap:26px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm)}
-.v2-adv-photo{aspect-ratio:3/4;border-radius:14px}
-.v2-adv h3{margin:6px 0 8px;font-size:25px}
-.v2-adv p{margin-bottom:14px;font-size:14.5px;line-height:1.7;color:var(--muted)}
-.v2-works{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-.v2-works span{display:inline-flex;align-items:center;min-height:28px;padding:2px 12px;border:1px solid var(--line);border-radius:999px;background:var(--paper-2);font-size:13px;color:var(--text)}
-.v2-team-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
-.v2-person{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--sh-sm)}
-/* 讲师团队的照片用 5:4，一行 4 个加“查看全部”按钮，1366×768 下不超一屏 */
-.v2-person-photo{aspect-ratio:5/4}
-.v2-person-body{display:flex;flex:1;flex-direction:column;padding:18px 20px 20px}
-.v2-person h3{margin:6px 0;font-size:21px}
-.v2-person p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-size:14px;line-height:1.65;color:var(--muted)}
+.v2-team-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+/* 小卡：圆形照片在上，文字居中；一行 4 个，多了点“查看全部”，1366×768 下不超一屏 */
+.v2-person{display:flex;flex-direction:column;align-items:center;padding:30px 22px 24px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--sh-sm);text-align:center}
+.v2-person-photo{flex:none;width:128px}
+.v2-person-photo .v2-photo-initial span{width:72px;height:72px;font-size:30px}
+.v2-person-body{display:flex;flex:1;flex-direction:column;align-items:center;width:100%;padding:18px 0 0}
+.v2-person .v2-tags{justify-content:center}
+.v2-person h3{margin:10px 0 6px;font-size:21px}
+/* 一句话介绍最多 50 字，小卡里放 3 行 */
+.v2-person p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-size:14px;line-height:1.65;color:var(--muted)}
 .v2-person .text-link{margin-top:auto}
 .v2-more{display:flex;align-items:center;min-height:44px;margin:20px auto 0;padding:0 26px;border:1px solid var(--red);border-radius:999px;background:#fff;font-size:14px;font-weight:600;color:var(--red);cursor:pointer;transition:background .2s ease}
 .v2-more:hover{background:var(--soft)}
@@ -207,10 +195,6 @@
 .v2-profile h1{margin:12px 0 12px;font-size:46px}
 .v2-profile .v2-profile-headline{max-width:640px;margin-bottom:20px;font:700 19px/1.65 var(--serif);color:#f3ece6}
 .v2-profile .v2-tags span{border:1px solid rgba(217,168,95,.35);background:rgba(255,255,255,.06);font-size:13px;color:#f1dfc0}
-.v2-profile-works{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:6px}
-.v2-profile-works>span{font-size:13px;color:var(--muted-d)}
-.v2-profile-works .v2-works{margin:0}
-.v2-profile .v2-works span{border-color:rgba(217,168,95,.45);background:transparent;color:#f3e2c4}
 /* 个人简介（浅色）：左边正文，右边白卡放主要经历和学术信息；没有经历时标题在左、正文在右 */
 .v2-bio{padding:64px 0;background:var(--paper)}
 .v2-bio-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:56px;align-items:start}
@@ -241,16 +225,16 @@
   .v2-profile-photo{max-width:320px}
   .v2-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .v2-team-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .v2-lead-grid,.v2-adv-grid{grid-template-columns:1fr}
-  .v2-facts{grid-template-columns:1fr 1fr}
-  .v2-facts div:nth-child(3){padding-left:0;border-left:0}
+  .v2-lead-grid{grid-template-columns:1fr}
   .v2-goal-grid.n4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .v2-preview-one{grid-template-columns:1fr;gap:28px}
   .v2-bio-grid.is-single .v2-bio-main{grid-template-columns:1fr;gap:0}
 }
 @media(max-width:760px){
-  .v2-courses,.v2-group,.v2-group-team{padding:40px 0 48px}
-  .v2-group-staff{padding-top:0}
+  .v2-courses{padding:40px 0 48px}
+  .v2-group+.v2-group{padding-top:14px}
+  .page-hero+.v2-group{padding-top:40px}
+  .v2-group:last-child,.v2-group:has(+.v2-cta){padding-bottom:48px}
   .v2-intro,.v2-goals,.v2-preview,.v2-enrol,.v2-related,.v2-bio{padding:44px 0}
   .v2-cta{padding:56px 0}
   .v2-head{display:block;margin-bottom:22px}
@@ -273,15 +257,14 @@
   .v2-preview-copy h3{font-size:20px}
   .v2-outline.is-two{columns:1}
   .v2-team-grid{grid-template-columns:1fr 1fr;gap:14px}
-  .v2-person-body{padding:14px 14px 16px}
+  .v2-person{padding:20px 12px 16px}
+  .v2-person-photo{width:96px}
+  .v2-person-body{padding-top:14px}
   .v2-person h3{font-size:18px}
   /* 手机上照片在上、文字在下，文字占满卡片宽度 */
-  .v2-lead2,.v2-adv{grid-template-columns:1fr;gap:16px;padding:20px}
-  .v2-lead2-photo,.v2-adv-photo{width:120px}
-  .v2-lead2-photo.is-round{width:104px;justify-self:start;margin:6px 0 0 6px;box-shadow:0 0 0 4px #fff,0 0 0 5px var(--line)}
-  .v2-lead2 h3,.v2-adv h3{font-size:22px}
-  .v2-facts{grid-template-columns:1fr}
-  .v2-facts div,.v2-facts div:nth-child(3){padding:16px 0 0;border-left:0}
+  .v2-lead2{grid-template-columns:1fr;gap:16px;padding:20px}
+  .v2-lead2-photo{width:104px;justify-self:start;margin:6px 0 0 6px;box-shadow:0 0 0 4px #fff,0 0 0 5px var(--line)}
+  .v2-lead2 h3{font-size:22px}
   .v2-hcard{grid-template-columns:1fr}
   .v2-hcard-cover{aspect-ratio:16/9;min-height:0}
   .v2-tcard{grid-template-columns:96px minmax(0,1fr);gap:18px;padding:20px;align-items:start}

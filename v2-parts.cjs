@@ -9,8 +9,8 @@ const text={
 function back(l,href){return `<a class="v2-back" href="${href}" onclick="if(document.referrer.indexOf(location.origin+'/')===0&&history.length>1){event.preventDefault();history.back()}"><span aria-hidden="true">←</span> ${text[l].back}</a>`}
 // trail：首页之后的各级，[文字, 链接]，最后一级（当前页）不带链接
 function crumbs(l,trail,backHref){return `<div class="v2-crumbs">${back(l,backHref)}<nav class="breadcrumbs" aria-label="${text[l].breadcrumb}"><a href="/${l}/">${text[l].home}</a>${trail.map(([label,href])=>`<span aria-hidden="true">/</span>${href?`<a href="${href}">${esc(label)}</a>`:`<span>${esc(label)}</span>`}`).join('')}</nav></div>`}
-// 照片框：有照片就铺满；只有海报上的圆形头像就整个框做成圆形；没有照片显示姓氏
-function photoBox(p,cls){const inner=p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy"${p.photoPos?` style="object-position:${esc(p.photoPos)}"`:''}>`:`<b class="v2-photo-initial" aria-hidden="true"><span>${esc([...String(p.name||'?')][0])}</span></b>`;return `<span class="v2-photo ${cls}${p.photoRound?' is-round':''}">${inner}</span>`}
+// 人物照片框：统一裁成圆形（2026-10-28 用户定“一人一张表”，照片要求正方形、脸在中间）；没有照片显示姓氏
+function photoBox(p,cls){const inner=p.photo?`<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy"${p.photoPos?` style="object-position:${esc(p.photoPos)}"`:''}>`:`<b class="v2-photo-initial" aria-hidden="true"><span>${esc([...String(p.name||'?')][0])}</span></b>`;return `<span class="v2-photo ${cls} is-round">${inner}</span>`}
 // 页尾咨询色带（深色、居中），second 是第二个按钮
 function cta(l,second=''){const [title,intro,action]=text[l].cta;return `<section class="v2-cta v2-dark"><div class="container"><h2>${title}</h2><p>${intro}</p><div class="v2-cta-acts"><a class="button primary" href="/${l}/contact/?service=training">${action} ↗</a>${second}</div></div></section>`}
 module.exports={esc,crumbs,photoBox,cta};
