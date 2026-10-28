@@ -4,14 +4,14 @@ const content={
  vi:{credentialEyebrow:'04 / HỒ SƠ NĂNG LỰC',credentialTitle:'Xây dựng niềm tin bằng hồ sơ năng lực có thể kiểm chứng',credentialIntro:'Một số hồ sơ năng lực, chứng nhận và tài liệu hợp tác của doanh nghiệp. Mỗi nội dung công bố cần có thể kiểm chứng công khai.',note:'Hiển thị trước các tài liệu tiêu biểu. Chọn ảnh để phóng to.',cooperationEyebrow:'05 / HÌNH THỨC HỢP TÁC',cooperationTitle:'Bắt đầu từ một vấn đề, cùng xây dựng từng bước',cooperationIntro:'Doanh nghiệp không cần có sẵn phương án hoàn chỉnh. Chúng tôi cùng xem xét vấn đề nghiệp vụ, dữ liệu sẵn có và mức độ sẵn sàng của đội ngũ trước khi chọn cách hợp tác phù hợp.',stages:[['Trao đổi nhu cầu','Làm rõ vấn đề','Cùng xác định một khâu công việc lặp lại, tốn thời gian hoặc phân tán thông tin; làm rõ mục tiêu và điều kiện hiện có.'],['Hợp tác thử nghiệm','Kiểm chứng một tình huống','Thử nghiệm một tình huống có phạm vi rõ ràng để đánh giá quy trình, dữ liệu và cách sử dụng.'],['Đồng hành dài hạn','Duy trì năng lực vận hành','Kết hợp đào tạo, triển khai Agent và thực hiện dự án để hình thành năng lực sử dụng AI bền vững.']]}
 };
 const esc=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-// 首页 04 公司资质、05 合作模式（深色）、06 常见问题（米色底）和资质放大框。
-// grid 是资质卡片（homepage-trust-production.cjs 按后台已发布的资质生成），没有资质时整块不显示；
-// faq 是静态首页里“合作之前”的内容；放大、展开全部的交互在 server.js 首页路由里
-function render(language='zh',faq='',grid=''){
+// 首页 04 公司资质（浅色）、05 合作模式（深色，首页中间唯一的深色带）、06 常见问题和资质放大框。
+// grid 是资质卡片，more 是卡片下面“查看全部资质”那一行（homepage-trust-production.cjs 按后台已发布的资质生成），没有资质时整块不显示；
+// faq 是静态首页里“合作之前”的内容，第一条默认展开；放大、展开全部的交互在 server.js 首页路由里
+function render(language='zh',faq='',grid='',more=''){
  const t=content[language]||content.zh;
  const stages=t.stages.map(([stage,title,description],index)=>`<li><span class="home-cooperation-number">${String(index+1).padStart(2,'0')}</span><p class="home-cooperation-stage">${esc(stage)}</p><h3>${esc(title)}</h3><p>${esc(description)}</p></li>`).join('');
- const credentials=grid?`<section class="home-qualifications" id="credentials" aria-labelledby="home-qualifications-title"><div class="container home-cred"><div class="home-qualifications-copy"><p class="eyebrow">${esc(t.credentialEyebrow)}</p><h2 id="home-qualifications-title">${esc(t.credentialTitle)}</h2><p>${esc(t.credentialIntro)}</p><p class="home-cred-note">${esc(t.note)}</p></div>${grid}</div></section>`:'';
- const questions=faq?`<section class="home-faq" id="faq">${faq.replace('<p class="eyebrow">','<p class="eyebrow">06 / ')}</section>`:'';
+ const credentials=grid?`<section class="home-qualifications" id="credentials" aria-labelledby="home-qualifications-title"><div class="container"><div class="home-head"><div><p class="eyebrow">${esc(t.credentialEyebrow)}</p><h2 id="home-qualifications-title">${esc(t.credentialTitle)}</h2><p>${esc(t.credentialIntro)}</p></div></div>${grid}<div class="home-cred-foot"><p class="home-cred-note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>${esc(t.note)}</p>${more}</div></div></section>`:'';
+ const questions=faq?`<section class="home-faq" id="faq">${faq.replace('<p class="eyebrow">','<p class="eyebrow">06 / ').replace('<details>','<details open>')}</section>`:'';
  return `${credentials}<section class="home-cooperation v2-dark" id="cooperation" aria-labelledby="home-cooperation-title"><div class="container"><div class="home-head"><div><p class="eyebrow">${esc(t.cooperationEyebrow)}</p><h2 id="home-cooperation-title">${esc(t.cooperationTitle)}</h2></div><p>${esc(t.cooperationIntro)}</p></div><ol class="home-cooperation-grid">${stages}</ol></div></section>${questions}<dialog class="home-qualification-dialog" aria-labelledby="home-qualification-dialog-title"><div><strong id="home-qualification-dialog-title"></strong><button type="button" aria-label="Close">×</button></div><img alt=""></dialog>`;
 }
 module.exports={render};

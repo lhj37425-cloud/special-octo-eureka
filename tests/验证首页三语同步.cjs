@@ -16,12 +16,14 @@ const {render}=require('../homepage-sections.cjs');
 try{
  for(const language of ['zh','en','vi']){
   const html=render(language);
-  for(const marker of ['home-hero','home-trust','company-introduction-section','data-service-grid','data-service-flow','business-scenarios'])assert.ok(html.includes(marker),`${language} 缺少共享首页结构：${marker}`);
+  for(const marker of ['home-hero','home-motto','company-introduction-section','data-service-grid','business-scenarios'])assert.ok(html.includes(marker),`${language} 缺少共享首页结构：${marker}`);
   for(const route of ['training','agents','implementation','cases',...slugs.map(slug=>`cases/${slug}`)])assert.ok(html.includes(`/${language}/${route}/`),`${language} 缺少本语言跳转：${route}`);
   assert.strictEqual((html.match(/data-service=/g)||[]).length,3,`${language} 缺少三项服务入口`);
-  // 数字条的案例数按后台已发布的案例读取（这里发布了 3 个），没有资质时不显示资质那一项
-  assert.match(html,/href="#scenarios"><b>3</,`${language} 数字条的案例数不对`);
-  assert.ok(!html.includes('href="#credentials"'),`${language} 没有资质时数字条不该显示资质`);
+  // 首屏下面是一句话（2026-10-28 代替数字条，不再显示案例数、资质数）；02 下面的流程条已删掉
+  assert.match(html,/<section class="home-motto"><div class="container"><p>[^<]*<em>[^<]+<\/em>/,`${language} 首屏下面的一句话不对`);
+  assert.ok(!/home-trust|data-service-flow/.test(html),`${language} 不该再有数字条或流程条`);
+  // 案例卡：3 个已发布案例都有一张卡，链接到本语言的案例详情
+  assert.strictEqual((html.match(/class="home-case"/g)||[]).length,3,`${language} 案例卡数量不对`);
   if(language!=='zh')assert.ok(!html.includes('/zh/'),`${language} 首页不应链接到中文路径`);
  }
 }finally{fs.rmSync(temp,{recursive:true,force:true})}

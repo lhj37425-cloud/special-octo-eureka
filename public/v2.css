@@ -16,6 +16,8 @@
   --r:16px;--sh-sm:0 2px 10px rgba(40,20,16,.05);--sh-md:0 14px 40px rgba(40,20,16,.1);
   /* 吸顶页头的高度；“一屏”= 视口高度 − 页头高度 */
   --header-h:76px;--screen-h:calc(100svh - var(--header-h));
+  /* 内容宽度 1200px（用户 2026-10-28 定，全站；打包样式里原来是 1280px），页头、页脚跟内容一样宽 */
+  --max:1200px;
   color:var(--text);background:var(--paper)
 }
 @media(max-width:1280px){:root{--header-h:68px}}
@@ -47,12 +49,44 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .main-nav>a:hover,.main-nav>a.active{color:var(--gold-soft)}
 .main-nav>a.active:after{bottom:18px;background:var(--gold)}
 @media(min-width:1281px){.main-nav{gap:30px}html:not(:lang(zh)) .main-nav{gap:22px}}
-.language-switcher{color:#e9e1db}
-.language-switcher summary:hover{color:var(--gold-soft)}
-.language-options{border-color:var(--line);border-radius:12px;box-shadow:var(--sh-md)}
-.language-options a{border-radius:8px}
 .header-cta{box-shadow:none}
 .menu-toggle{color:#fff}
+/* 页头和内容一样宽，左右边线对齐（宽度规则和 .container 一样） */
+.header-inner{width:min(var(--max),calc(100% - 112px));max-width:none}
+@media(max-width:1250px){.header-inner{width:calc(100% - 80px)}}
+@media(max-width:700px){.header-inner{width:calc(100% - 40px)}}
+/* 语言切换：三个按钮平铺（照豆包），当前语言填色。页面上是“中文 | VI | EN”，读屏软件读完整语言名 */
+.language-pills{display:flex;flex:none;align-items:center;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.1)}
+.language-pills a{display:grid;place-items:center;min-width:40px;height:30px;padding:0 12px;border-radius:999px;font-size:12.5px;font-weight:700;line-height:1;white-space:nowrap;color:rgba(255,255,255,.78);transition:background-color .2s ease,color .2s ease}
+.language-pills a:hover{color:#fff}
+.language-pills a[aria-current]{background:var(--gold-soft);color:var(--ink)}
+.language-pills a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* 页头压在每页的深色首屏上（照豆包）：首屏往上伸到页头后面——上边框透明、背景一直画到边框下面，内容位置不变；
+   首页首屏自己在上留白里算进页头高度（v2-home.css）。v2.js 给 <html> 加上 .v2-header 以后：
+   页面在最上面时页头透明（上面一层很淡的深色渐变，压在红光上的字更清楚），往下滚变浅米色毛玻璃、深色字。
+   没有脚本时页头保持深色，照样看得清 */
+main#main:has(> :is(.page-hero,.v2-dark):first-child){margin-top:calc(-1 * var(--header-h))}
+main#main>:is(.page-hero,.v2-dark):first-child:not(.home-hero){border-top:var(--header-h) solid transparent;background-origin:border-box}
+.v2-header .site-header{background-color:transparent;background-image:linear-gradient(rgba(16,7,8,.42),rgba(16,7,8,0));box-shadow:none}
+.v2-header-ready .site-header{transition:background-color .3s ease,box-shadow .3s ease}
+.v2-header .site-header.is-scrolled{background-color:rgba(246,241,236,.88);background-image:none;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 1px 0 var(--line)}
+.v2-header .is-scrolled .brand strong{color:var(--ink)}
+.v2-header .is-scrolled .brand small{color:var(--muted)}
+.v2-header .is-scrolled .main-nav>a{color:var(--text)}
+.v2-header .is-scrolled .main-nav>a:hover,.v2-header .is-scrolled .main-nav>a.active{color:var(--red)}
+.v2-header .is-scrolled .main-nav>a.active:after{background:var(--red)}
+.v2-header .is-scrolled .menu-toggle{color:var(--ink)}
+.v2-header .is-scrolled .language-pills{background:rgba(120,90,80,.12)}
+.v2-header .is-scrolled .language-pills a{color:var(--muted)}
+.v2-header .is-scrolled .language-pills a:hover{color:var(--red)}
+.v2-header .is-scrolled .language-pills a[aria-current]{background:var(--red);color:#fff}
+.v2-header .is-scrolled .language-pills a:focus-visible{outline-color:var(--red)}
+/* 手机上打开菜单时（v2.js 这时去掉 .is-scrolled）页头用深色，和深色的下拉菜单连成一块 */
+.v2-header .site-header:has(.main-nav.is-open){background-color:var(--ink);background-image:none;box-shadow:0 1px 0 var(--line-d)}
+@media(max-width:700px){.language-pills{gap:0;padding:3px}.language-pills a{min-width:32px;padding:0 8px;font-size:12px}}
+/* 小手机上越南语、英文的品牌副标题太长，和语言按钮放不下一行，先收起来 */
+@media(max-width:480px){html:not(:lang(zh)) .brand small{display:none}}
 @media(max-width:1280px){
   .main-nav{top:var(--header-h);background:var(--ink-2);border-bottom:1px solid var(--line-d);box-shadow:0 18px 30px rgba(0,0,0,.28)}
   .main-nav>a{padding:14px 0;border-bottom-color:var(--line-d);font-size:16px;color:#e9e1db}
