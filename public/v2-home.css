@@ -90,11 +90,10 @@ html:not(:lang(zh)) .home-facts dt{letter-spacing:.02em}
 .home-svc .text-link svg{transition:transform .25s ease}
 .home-svc:hover .text-link svg{transform:translateX(5px)}
 
-/* 03 业务场景（用户 2026-10-28 定）：字压在配图上；电脑上整块占满一屏，卡片把第一屏剩下的高度撑满（最高 420px），
-   大屏幕上卡片不再变高，整块仍是一屏高、内容上下居中。越南语、英文的标题和说明长，卡片矮一点 */
+/* 03 业务场景（用户 2026-10-28 定）：字压在配图上；电脑上整块占满一屏、内容上下居中。
+   卡片高度三种语言一样（按越南语、英文标题较长时正好一屏算，用户觉得这个比例更好看），随屏幕变高，最高 420px */
 .home-case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
-.home-case{position:relative;display:block;height:clamp(300px,calc(var(--screen-h) - 356px),420px);overflow:hidden;border-radius:var(--r);background:var(--ink);box-shadow:var(--sh-sm);transition:transform .35s ease,box-shadow .35s ease}
-html:not(:lang(zh)) .home-case{height:clamp(260px,calc(var(--screen-h) - 437px),420px)}
+.home-case{position:relative;display:block;height:clamp(260px,calc(var(--screen-h) - 437px),420px);overflow:hidden;border-radius:var(--r);background:var(--ink);box-shadow:var(--sh-sm);transition:transform .35s ease,box-shadow .35s ease}
 .home-case:hover{transform:translateY(-8px);box-shadow:var(--sh-md)}
 .home-case:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .home-case-img{position:absolute;inset:0;display:block}
@@ -184,7 +183,7 @@ html:not(:lang(zh)) .home-case{height:clamp(260px,calc(var(--screen-h) - 437px),
   .home-hero-media figcaption{left:16px;bottom:-18px}
   .home-about{gap:40px}
   .home-case-grid,.home-qualification-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .home-case,html:not(:lang(zh)) .home-case{height:340px}
+  .home-case{height:340px}
   .home-svc{padding:30px 24px}
   .home-faq .faq-layout{gap:28px}
 }
@@ -206,7 +205,7 @@ html:not(:lang(zh)) .home-case{height:clamp(260px,calc(var(--screen-h) - 437px),
   .home-facts div{padding:18px 20px;column-gap:16px}
   .home-svc-grid,.home-case-grid,.home-qualification-grid,.home-cooperation-grid{grid-template-columns:1fr}
   .home-svc{padding:28px 24px}
-  .home-case,html:not(:lang(zh)) .home-case{height:300px}
+  .home-case{height:300px}
   .home-case-body{padding:20px 20px 22px}
   .home-cooperation-grid li{padding:26px 24px}
   .home-faq .faq-list summary{font-size:16px}
