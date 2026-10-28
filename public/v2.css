@@ -41,8 +41,8 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .site-header{background:var(--ink);border-top:0;border-bottom:0;box-shadow:0 1px 0 var(--line-d);backdrop-filter:none}
 .header-inner{height:var(--header-h)}
 .brand{color:#fff}
-.brand svg{box-sizing:content-box;width:26px;height:26px;padding:6px;border-radius:10px;background:linear-gradient(135deg,#c41d24,#7a0508);color:#fff}
-.brand svg path:last-child{fill:#a30c12}
+/* 甲方 logo（2026-10-28）：红色 E 加金色环，横着比竖着宽，按高度缩放 */
+.brand-mark{display:block;flex:none;width:auto;height:46px}
 .brand strong{font-size:21px;font-weight:800;letter-spacing:.02em;color:#fff}
 .brand small{margin-top:3px;font-size:12px;letter-spacing:.08em;color:var(--muted-d)}
 .main-nav>a{padding:26px 0;font-size:15px;color:#e9e1db}
@@ -95,14 +95,16 @@ main#main>:is(.page-hero,.v2-dark):first-child:not(.home-hero){border-top:var(--
 }
 @media(max-width:700px){
   .brand{gap:9px}
-  .brand svg{width:22px;height:22px;padding:5px;border-radius:8px}
+  .brand-mark{height:34px}
   .brand strong{font-size:18px}
   .brand small{font-size:12px;letter-spacing:.04em}
 }
+/* 小手机上 logo 再小一点，和语言按钮、菜单按钮放得下一行 */
+@media(max-width:480px){.brand{gap:7px}.brand-mark{height:30px}}
 
 /* 页脚：更深的暖黑 */
 .site-footer{background:var(--ink-3);color:var(--muted-d);border-top:0;padding:40px 0 24px}
-.site-footer .brand svg{width:26px;height:26px}
+.site-footer .brand-mark{height:44px}
 .footer-top .brand strong{font-size:21px}
 .footer-links{font-size:14px;color:#ddd3cb}
 .footer-links a:hover,.footer-bottom a:hover{color:var(--gold-soft)}
