@@ -6,15 +6,15 @@ const copy={
 
 function esc(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
 const arrow='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
-// 首页 03 业务场景（浅色）：三张案例卡，上面配图、下面行业、案例名、简介和最多 3 项交付成果，点卡片进入案例详情
+// 首页 03 业务场景（浅色底）：三张案例卡，配图上压着行业、案例名和两行简介（2026-10-28 用户定），点卡片进入案例详情
 function render(language='zh'){
  const t=copy[language]||copy.zh;
  // 首页案例来自后台“应用案例”：优先显示勾选“首页展示”的（最多 3 个），没有勾选时显示排在最前的 3 个
  const cases=require('./cases.cjs').loadCases(language),featured=cases.filter(c=>c.featured);
- const scenarios=(featured.length?featured:cases).slice(0,3).map(c=>{const d=c[language];return {no:c.no,name:d.title,label:d.industry,description:d.summary,tags:d.deliverables.slice(0,3),image:c.image,link:`/${language}/cases/${c.slug}/`}});
+ const scenarios=(featured.length?featured:cases).slice(0,3).map(c=>{const d=c[language];return {no:c.no,name:d.title,label:d.industry,description:d.summary,image:c.image,link:`/${language}/cases/${c.slug}/`}});
  if(!scenarios.length)return '';
  // 配图是 AI 生成的示意图，左上角标“应用案例示意 · 编号”
- const cards=scenarios.map(s=>`<a class="home-case" href="${s.link}"><span class="home-case-img"><img src="${s.image}" alt="" loading="lazy" decoding="async" width="1600" height="532"><em>${esc(t.application)} · ${s.no}</em></span><span class="home-case-body"><small>${esc(s.label)}</small><h3>${esc(s.name)}</h3><p>${esc(s.description)}</p>${s.tags.length?`<span class="home-chips">${s.tags.map(tag=>`<span>${esc(tag)}</span>`).join('')}</span>`:''}</span></a>`).join('');
+ const cards=scenarios.map(s=>`<a class="home-case" href="${s.link}"><span class="home-case-img"><img src="${s.image}" alt="" loading="lazy" decoding="async" width="1600" height="532"><em>${esc(t.application)} · ${s.no}</em></span><span class="home-case-body"><small>${esc(s.label)}</small><h3>${esc(s.name)}</h3><p>${esc(s.description)}</p></span></a>`).join('');
  return `<section class="business-scenarios" id="scenarios" aria-labelledby="business-scenarios-title"><div class="container"><div class="home-head"><div><p class="eyebrow">${esc(t.eyebrow)}</p><h2 id="business-scenarios-title">${esc(t.title)}</h2><p>${esc(t.intro)}</p></div><a class="home-head-link" href="/${language}/cases/">${esc(t.more)} · ${esc(t.browse.replace('{n}',cases.length))}${arrow}</a></div><div class="home-case-grid">${cards}</div></div></section>`;
 }
 

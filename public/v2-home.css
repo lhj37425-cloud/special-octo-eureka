@@ -90,21 +90,26 @@ html:not(:lang(zh)) .home-facts dt{letter-spacing:.02em}
 .home-svc .text-link svg{transition:transform .25s ease}
 .home-svc:hover .text-link svg{transform:translateX(5px)}
 
-/* 03 业务场景：三张案例卡，配图 16:9，下面行业、案例名、简介（最多 3 行）、交付成果 */
+/* 03 业务场景（用户 2026-10-28 定）：字压在配图上；电脑上整块占满一屏，卡片把第一屏剩下的高度撑满（最高 420px），
+   大屏幕上卡片不再变高，整块仍是一屏高、内容上下居中。越南语、英文的标题和说明长，卡片矮一点 */
 .home-case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
-.home-case{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--sh-sm);transition:transform .35s ease,box-shadow .35s ease}
+.home-case{position:relative;display:block;height:clamp(300px,calc(var(--screen-h) - 356px),420px);overflow:hidden;border-radius:var(--r);background:var(--ink);box-shadow:var(--sh-sm);transition:transform .35s ease,box-shadow .35s ease}
+html:not(:lang(zh)) .home-case{height:clamp(260px,calc(var(--screen-h) - 437px),420px)}
 .home-case:hover{transform:translateY(-8px);box-shadow:var(--sh-md)}
 .home-case:focus-visible{outline:2px solid var(--red);outline-offset:3px}
-.home-case-img{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:var(--ink)}
+.home-case-img{position:absolute;inset:0;display:block}
 .home-case-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
 .home-case:hover .home-case-img img{transform:scale(1.04)}
-.home-case-img em{position:absolute;top:14px;left:14px;padding:4px 12px;border-radius:999px;background:rgba(18,8,9,.66);font-size:12px;font-style:normal;color:#f3ece6}
-.home-case-body{display:flex;flex:1;flex-direction:column;padding:24px 28px 28px}
-.home-case-body small{font-size:12.5px;font-weight:700;color:var(--red)}
-.home-case-body h3{margin:8px 0 10px;font-size:20px;line-height:1.4}
-.home-case-body p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:18px;font-size:14.5px;line-height:1.75;color:var(--muted)}
-.home-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
-.home-chips span{padding:4px 12px;border-radius:999px;background:var(--paper);font-size:12px;line-height:1.6;color:var(--muted)}
+/* 下半部加深色渐变，压在上面的字看得清 */
+.home-case-img:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(18,8,9,.95) 0,rgba(18,8,9,.86) 30%,rgba(18,8,9,.55) 55%,rgba(18,8,9,0) 80%)}
+.home-case-img em{position:absolute;top:14px;left:14px;z-index:1;padding:4px 12px;border-radius:999px;background:rgba(18,8,9,.66);font-size:12px;font-style:normal;color:#f3ece6}
+.home-case-body{position:absolute;left:0;right:0;bottom:0;z-index:1;display:block;padding:22px 26px 24px}
+.home-case-body small{font-size:12.5px;font-weight:700;color:var(--gold-soft);text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.home-case-body h3{margin:6px 0 8px;font-size:21px;line-height:1.4;color:#fff}
+.home-case-body p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-size:14.5px;line-height:1.7;color:rgba(255,255,255,.84)}
+@media(min-width:1101px){
+  .business-scenarios{display:flex;align-items:center;min-height:var(--screen-h)}
+}
 
 /* 04 公司资质：三张证书卡，图片在暖米色框里；下面一行左边说明、右边“查看全部资质”，点开后其余的接在后面；点图片放大 */
 .home-qualification-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
@@ -179,6 +184,7 @@ html:not(:lang(zh)) .home-facts dt{letter-spacing:.02em}
   .home-hero-media figcaption{left:16px;bottom:-18px}
   .home-about{gap:40px}
   .home-case-grid,.home-qualification-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-case,html:not(:lang(zh)) .home-case{height:340px}
   .home-svc{padding:30px 24px}
   .home-faq .faq-layout{gap:28px}
 }
@@ -200,7 +206,8 @@ html:not(:lang(zh)) .home-facts dt{letter-spacing:.02em}
   .home-facts div{padding:18px 20px;column-gap:16px}
   .home-svc-grid,.home-case-grid,.home-qualification-grid,.home-cooperation-grid{grid-template-columns:1fr}
   .home-svc{padding:28px 24px}
-  .home-case-body{padding:22px 22px 24px}
+  .home-case,html:not(:lang(zh)) .home-case{height:300px}
+  .home-case-body{padding:20px 20px 22px}
   .home-cooperation-grid li{padding:26px 24px}
   .home-faq .faq-list summary{font-size:16px}
   .home-faq .faq-list details p{padding-right:0}
