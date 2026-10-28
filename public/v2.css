@@ -114,6 +114,19 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .page-hero .breadcrumbs,.v2-dark .breadcrumbs{color:var(--muted-d)}
 .page-hero .breadcrumbs a,.v2-dark .breadcrumbs a{color:var(--gold-soft)}
 @media(max-width:700px){.breadcrumbs{font-size:12px}}
+/* 所有内页顶部：“← 返回上一页”胶囊按钮 + 面包屑，中间一条细竖线。
+   静态页由 server.js 的 addStaticBackLink 加，课程页、专家页由 v2-parts.cjs 的 crumbs 加，样子和做法相同 */
+.v2-crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:28px}
+.v2-crumbs .breadcrumbs{margin:0}
+.v2-crumbs .breadcrumbs:before{content:"";width:1px;height:14px;margin-right:6px;background:currentColor;opacity:.4}
+.v2-back{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 15px 0 13px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:13.5px;font-weight:600;color:var(--text);transition:border-color .2s ease,color .2s ease,background .2s ease}
+.v2-back:hover{border-color:var(--red);color:var(--red)}
+.v2-back:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.page-hero .v2-back,.v2-dark .v2-back{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff}
+.page-hero .v2-back:hover,.v2-dark .v2-back:hover{border-color:var(--gold-soft);background:rgba(255,255,255,.1);color:var(--gold-soft)}
+.page-hero .v2-back:focus-visible,.v2-dark .v2-back:focus-visible{outline-color:var(--gold)}
+.v2-crumbs.is-solo{margin-bottom:0;padding-top:24px}
+@media(max-width:700px){.v2-crumbs{margin-bottom:22px}.v2-crumbs .breadcrumbs:before{display:none}.v2-back{min-height:40px}}
 
 /* 点页内链接（比如首页数字条）跳过去时，只让出吸顶页头的高度 */
 html{scroll-padding-top:var(--header-h)}
