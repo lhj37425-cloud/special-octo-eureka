@@ -101,34 +101,78 @@
 .v2-redcard h2{margin:0 0 12px;font-size:32px;color:#fff}
 .v2-redcard p{margin-bottom:24px;color:#f6e6e6}
 
-/* 专家列表：排第一的讲师放大显示，其余每行 4 个，照片铺满照片框 */
-.v2-team{padding:56px 0 64px}
-.v2-lead{display:grid;grid-template-columns:320px minmax(0,1fr);gap:48px;align-items:center;padding:28px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm);transition:box-shadow .2s}
-.v2-lead:hover{box-shadow:var(--sh-md)}
-.v2-lead-photo{display:block;overflow:hidden;border-radius:14px;background:#e7e0da}
-.v2-lead-photo img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:50% 18%}
-.v2-lead-body{display:block}
-.v2-lead h2{margin:8px 0 10px;font-size:34px}
-.v2-lead .v2-lead-intro{margin-bottom:16px;font-size:15.5px;line-height:1.85;color:var(--muted)}
-.v2-lead .v2-creds{grid-template-columns:1fr 1fr;gap:8px 28px}
-.v2-team-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-top:28px}
+/* 照片框：照片铺满；只有海报上的圆形头像时按圆形放在中间；没有照片显示姓氏；待补照片时左上角红色提示 */
+.v2-photo{position:relative;display:block;overflow:hidden;background:#e9e3dc}
+.v2-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+.v2-photo.is-round{display:grid;place-items:center;background:linear-gradient(#efeae4,#e2dbd3)}
+.v2-photo.is-round img{width:66%;height:auto;aspect-ratio:1/1;border:4px solid #fff;border-radius:50%;box-shadow:var(--sh-sm)}
+.v2-photo-initial{display:grid;place-items:center;width:100%;height:100%;font:700 64px/1 var(--serif);color:#8c7f76}
+.v2-photo-note{position:absolute;top:10px;left:10px;z-index:1;padding:3px 9px;border-radius:999px;background:var(--red);font-size:12px;color:#fff}
+
+/* 专家列表首屏：4 个可核实的事实，每条写明是谁的 */
+.v2-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:30px;border-top:1px solid var(--line-d)}
+.v2-facts div{padding:22px 28px 0;border-left:1px solid var(--line-d)}
+.v2-facts div:first-child{padding-left:0;border-left:0}
+.v2-facts b{display:block;font:700 26px/1.25 var(--serif);color:#fff}
+.v2-facts em{margin-left:4px;font-style:normal;font-size:18px;color:var(--gold-soft)}
+.v2-facts span{display:block;margin-top:6px;font-size:13px;line-height:1.6;color:var(--muted-d)}
+
+/* 专家列表四组：01 主讲专家（两张大卡并排）、02 技术顾问（深色）、03 讲师团队（一行 4 个）、04 班主任与项目负责人 */
+.v2-group{padding:52px 0}
+.v2-group-team{background:#fff}
+.v2-head>p{max-width:440px;font-size:15px;color:var(--muted)}
+.v2-dark .v2-head>p{color:var(--muted-d)}
+.v2-lead-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.v2-lead2{display:grid;grid-template-columns:200px minmax(0,1fr);gap:26px;align-items:center;padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
+.v2-lead2:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+.v2-lead2-photo{aspect-ratio:3/4;border-radius:14px}
+.v2-focus{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:700;color:var(--red)}
+.v2-lead2 h3{margin:12px 0 4px;font-size:28px}
+.v2-lead2-role{display:block;font-size:14px;color:var(--muted)}
+.v2-lead2 p{margin:10px 0 12px;font-size:14.5px;line-height:1.7;color:var(--text)}
+.v2-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.v2-tags span{display:inline-flex;align-items:center;min-height:26px;padding:2px 10px;border-radius:999px;background:var(--soft);font-size:12.5px;color:var(--red)}
+.v2-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.v2-adv{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;align-items:center;padding:22px;border:1px solid var(--line-d);border-radius:var(--r);background:rgba(255,255,255,.04);transition:border-color .2s}
+.v2-adv:hover{border-color:rgba(217,168,95,.55)}
+.v2-adv-photo{aspect-ratio:3/4;border-radius:12px}
+.v2-adv .v2-role{color:var(--gold-soft)}
+.v2-adv h3{margin:6px 0 8px;font-size:24px}
+.v2-adv p{margin-bottom:14px;font-size:14.5px}
+.v2-works{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.v2-works span{display:inline-flex;align-items:center;min-height:28px;padding:2px 12px;border:1px solid rgba(217,168,95,.55);border-radius:999px;font-size:13px;color:#f3e2c4}
+.v2-team-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
 .v2-person{display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
 .v2-person:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
-.v2-person-photo{display:block;aspect-ratio:1/1;overflow:hidden;background:#e7e0da}
-.v2-person-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
+/* 讲师团队的照片用 5:4，一行 4 个加“查看全部”按钮，1366×768 下不超一屏 */
+.v2-person-photo{aspect-ratio:5/4}
 .v2-person-body{display:flex;flex:1;flex-direction:column;padding:18px 20px 20px}
 .v2-person h3{margin:6px 0;font-size:21px}
 .v2-person p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px;font-size:14px;color:var(--muted)}
 .v2-person .text-link{margin-top:auto}
+.v2-group-team .v2-head{margin-bottom:22px}
+.v2-more{display:flex;align-items:center;height:44px;margin:20px auto 0;padding:0 24px;border:1px solid var(--red);border-radius:999px;background:#fff;font-size:14px;font-weight:600;color:var(--red);cursor:pointer}
+.v2-more:hover{background:var(--soft)}
+.v2-staff-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.v2-staff{display:grid;grid-template-columns:96px minmax(0,1fr);gap:20px;align-items:center;padding:20px 22px;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--sh-sm)}
+.v2-staff-photo{width:96px;height:96px;border-radius:50%}
+.v2-staff-photo.is-round img{width:100%;height:100%;border:0;box-shadow:none}
+.v2-staff-photo .v2-photo-note{display:none}
+.v2-staff h3{margin:4px 0;font-size:20px}
+.v2-staff p{font-size:14px;color:var(--muted)}
 
 /* 专家详情：照片 3:4 铺满（最宽 380px），右边资料；关联课程横向卡片每行 2 张 */
 .v2-profile{padding:30px 0 56px;background:var(--paper-2)}
 .v2-profile .breadcrumbs{margin-bottom:24px}
 .v2-profile .breadcrumbs a{color:var(--red)}
 .v2-profile-grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:56px;align-items:center}
-.v2-profile-photo{margin:0;overflow:hidden;border-radius:20px;background:#e7e0da;box-shadow:var(--sh-md)}
-.v2-profile-photo img{width:100%;aspect-ratio:3/4;object-fit:cover;object-position:50% 18%}
+.v2-profile-photo{aspect-ratio:3/4;border-radius:20px;box-shadow:var(--sh-md)}
 .v2-profile h1{margin:14px 0 10px;font-size:42px}
+.v2-profile .v2-focus{margin-bottom:12px}
+.v2-profile .eyebrow{letter-spacing:.12em}
+.v2-profile .v2-profile-headline{margin-bottom:12px;font:700 18px/1.6 var(--serif);color:var(--text)}
+.v2-profile .v2-tags{margin-bottom:18px}
+.v2-profile .v2-works span{border-color:var(--line);color:var(--muted)}
 .v2-profile .v2-profile-intro{margin-bottom:18px;font-size:15.5px;line-height:1.85;color:var(--muted)}
 .v2-profile .v2-creds.is-two{grid-template-columns:1fr 1fr;gap:8px 28px}
 .v2-profile .teacher-background{margin:0 0 18px}
@@ -148,11 +192,13 @@
   .v2-profile-photo{max-width:380px}
   .v2-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .v2-team-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .v2-lead{grid-template-columns:240px minmax(0,1fr);gap:28px}
+  .v2-lead-grid,.v2-adv-grid{grid-template-columns:1fr}
+  .v2-facts{grid-template-columns:1fr 1fr}
+  .v2-facts div:nth-child(3){padding-left:0;border-left:0}
   .v2-goal-grid.n4{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
-  .v2-courses,.v2-team{padding:40px 0 48px}
+  .v2-courses,.v2-group{padding:40px 0 48px}
   .v2-intro,.v2-goals,.v2-preview,.v2-enrol,.v2-related{padding:44px 0}
   .v2-head{display:block}
   .v2-head h2{font-size:26px}
@@ -164,10 +210,12 @@
   .v2-clip-grid.is-scroll{grid-auto-columns:85%}
   .v2-outline,.v2-outline.is-three{columns:1}
   .v2-team-grid{grid-template-columns:1fr 1fr;gap:14px}
-  .v2-lead{grid-template-columns:1fr;padding:18px}
-  .v2-lead-photo{max-width:260px}
-  .v2-lead h2{font-size:28px}
-  .v2-lead .v2-creds,.v2-profile .v2-creds.is-two{grid-template-columns:1fr}
+  .v2-lead2,.v2-adv{grid-template-columns:110px minmax(0,1fr);gap:16px;padding:16px}
+  .v2-lead2 h3,.v2-adv h3{font-size:22px}
+  .v2-staff-grid{grid-template-columns:1fr}
+  .v2-facts{grid-template-columns:1fr}
+  .v2-facts div,.v2-facts div:nth-child(3){padding:16px 0 0;border-left:0}
+  .v2-profile .v2-creds.is-two{grid-template-columns:1fr}
   .v2-hcard{grid-template-columns:1fr}
   .v2-hcard-cover{aspect-ratio:16/9;min-height:0}
   .v2-tcard{grid-template-columns:100px minmax(0,1fr);gap:16px;padding:18px}

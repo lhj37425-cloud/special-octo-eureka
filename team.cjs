@@ -1,0 +1,30 @@
+// 专家及讲师资料表：改版期间先放在前台（后台暂缓），以后改后台或换 CMS 时把这些栏位搬过去。
+// 资料来源：甲方 PPT《团队核心成员介绍》、团队介绍海报和谢香简介（存档在 D:\data网站数据保存\讲师资料-2026-10-27\），文案待甲方确认。
+// group：lead 主讲专家 / advisor 技术顾问 / team 讲师团队 / staff 班主任与项目负责人；同一组按这里的顺序排。
+// id 和后台专家记录相同时（黄文定），名字、简介、经历用后台已发布的，这里补上分组、头衔、标签，并换成 PPT 里的高清照片。
+// photoRound：只有海报上的圆形头像，按圆形显示；photoNote：照片待补时卡片角上的提示。
+// role 是卡片上的职务；detailRole 只在详情页显示（“联合创始人”只放详情页）。
+const people = [
+ {id:'zheng-yi',group:'lead',photo:'/team/zheng-yi.jpg',photoRound:true,photoNote:'待补原图',zh:{name:'郑毅',focus:'Agent 落地 · 主讲',role:'AI Agent 产品开发与落地工程师',headline:'深港产学研基地（北京大学深圳研究院）培训中心特聘讲师',tags:['Claude Certified Architect - Foundations','NVIDIA 生成式 AI 工程师认证','190 万注册用户产品核心开发者'],bio:['郑毅，深港产学研基地（北京大学深圳研究院）培训中心特聘讲师，AI Agent 产品开发与落地工程师，累计 190 万注册用户产品核心开发者，获 Claude Certified Architect - Foundations 及 NVIDIA 生成式 AI 工程师认证。','曾带领跨职能团队，主导多产品线用户行为分析与智能运营平台建设，完成异构数据接入、统一语义层设计、用户意图识别及付费预测模型开发。围绕企业业务场景开展 Agent 框架与模型网关二次开发，构建工具路由、工作流编排与质量校验机制，推动智能体接入运营、销售及数据分析流程，具备从业务需求分析、系统架构设计到工程交付的完整实践经验。','教学中侧重 AI Agent 工程化落地实操指导，将一线产品开发实战经验融入 AI 类研修班课程，帮助学员掌握智能体开发与落地全流程方法，为企业输出可落地的 AI Agent 技术方案，助力企业实现业务流程智能化升级与降本增效。']}},
+ {id:'exp-mvp10sff',group:'lead',photo:'/team/huang-wending.jpg',zh:{name:'黄文定（KIMI）',focus:'AIGC 创作 · 主讲',role:'运营总监',detailRole:'运营总监 / 联合创始人',headline:'资深 AIGC 讲师 · AIGC 创作导演',tags:['工信部 AIGC 高级工程师','北京大学深圳研究院特邀首席 AI 专家导师','火山引擎 & 天杨 AI 特邀合作导师']}},
+ {id:'zhang-hong',group:'advisor',photo:'/team/zhang-hong.jpg',photoPos:'50% 12%',zh:{name:'张洪',role:'技术顾问',headline:'电影导演、AIGC 头部导演',summary:'编导一体创作型导演，从业十二年；北京电影学院 AIGC 客座讲师，中国电影家协会成员。',bio:['张洪，电影导演、AIGC 头部导演。编导一体创作型导演，从业十二年，首位登陆电影频道 AIGC 电影幕后技术专访的电影制作人，在电影、动漫、AIGC 影视视听领域斩获多项行业奖项。','任职：中国电影家协会成员、北京电影学院 AIGC 客座讲师、广州电影家协会理事等，为香港导演赖水清关门弟子，中国首批 AIGC 应用技术、元宇宙应用工程师。'],works:['院线电影《功夫乒乓》','院线电影《破战》','网络电影《大宋断狱神手》系列']}},
+ {id:'luo-weihao',group:'advisor',photo:'/team/luo-weihao.jpg',photoPos:'50% 30%',photoNote:'需原图',zh:{name:'罗伟豪',role:'技术顾问',headline:'导演、视效导演、AIGC 顾问',summary:'香港资深电影视效导演，周星驰御用特效导演，获香港金像奖、台北金马奖最佳视觉效果。',bio:['罗伟豪，导演、视效导演、AIGC 顾问。香港资深电影视效导演，周星驰御用特效导演，斩获香港金像奖、台北金马奖最佳视觉效果。'],works:['《少林足球》','《西游降魔篇》','《美人鱼》','《长江七号》','《花木兰》','《鬼吹灯》系列']}},
+ {id:'sun-shujie',group:'team',photo:'/team/sun-shujie.jpg',photoNote:'待补高清照片',zh:{name:'孙书杰',role:'课程开发总监',detailRole:'课程开发总监 / 联合创始人',headline:'曾任上市在线教育公司课程开发总监，资深 AIGC 讲师',tags:['工信部 AIGC 高级工程师'],bio:['孙书杰（Sun），计算机技术专业，曾任某线上教育上市公司课程开发总监，资深三年 AIGC 讲师和会销专家，工信部 AIGC 高级工程师。','深圳微短剧协会（剧查查）& 三中心（全球跨境电商生态集聚中心交易服务中心和数字供应链中心）特邀首席合作 opc＋电商导师。','火山引擎 & 天杨 AI 特邀合作 AIGC 商业应用讲师。']}},
+ {id:'liu-dajian',group:'team',photo:'/team/liu-dajian.jpg',photoNote:'待补高清照片',zh:{name:'刘大健',role:'技术总监',detailRole:'技术总监 / 联合创始人',headline:'15 年影视广告导演、摄影师，20 万粉丝 AI 短视频博主',tags:['工信部 AIGC 高级工程师'],bio:['刘大健，15 年影视广告导演、摄影师，AIGC 商业应用讲师，工信部 AIGC 高级工程师。','20 万粉丝＋AI 短视频博主；即梦、豆包核心领航员，RHTV 签约创作者。深耕 AIGC 内容创作与商业化落地，先后参与美团、淘宝等品牌 AIGC 广告制作，同时参与爱奇艺 AI 历史纪录片栏目内容创作，凭借十几年影视制作从业经验持续探索 AI 影像创新。']}},
+ {id:'xie-xiang',group:'team',photo:'',photoNote:'待补照片',zh:{name:'谢香',role:'AI 应用实战专家',headline:'从事 AI 商业 15 年，讲 AI 培训课超过 100 场、学员超过 5000 人',bio:['专注于利用 AI 技术工具赋能实体企业降本增效，AI 智能体开发、自研小黑 AI 新媒体机器人。','客户案例：中国移动、东莞第八人民医院、石龙职校（长期开 AI 班，东莞人社局组织）、中山泰帝科技等。'],items:['西安交通大学工学硕士（保送）（自动化专业，企业信息系统开发）','国家奖学金、全国舞蹈机器人大赛二三等奖获得者','中国移动工作 6 年，创业 10 年服务实体商家超 1000 家','从事 AI 商业 15 年，AI 应用实战专家，讲 AI 培训课超过 100 场，学员超过 5000 人，AI 实体企业落地一站式解决方案提供商']}},
+ {id:'duan-xiaoying',group:'team',photo:'/team/duan-xiaoying.jpg',photoPos:'50% 22%',zh:{name:'段小英',role:'课程老师',headline:'15 年美术设计教育，中国美术学院优秀美育教师',bio:['段小英，从事美术设计教育培训工作 15 年，白名单赛事优秀指导教师。'],items:['学院杯｜中国美术学院优秀美育教师','全国中小学生绘画书法比赛“优秀指导教师”','希望颂大赛“优秀指导教师”','全国人工智能创作者大赛优秀指导老师']}},
+ {id:'lu-jinzhong',group:'team',photo:'/team/lu-jinzhong.jpg',zh:{name:'卢进忠',role:'资深讲师',headline:'8 年影视制作，参与《大圣归来》《深海》《哪吒》',tags:['工信部 AIGC 高级工程师'],bio:['卢进忠，头部影视公司技术人员，8 年影视制作经验，曾参与制作《大圣归来》《深海》《哪吒》《炼气十万年》《玄幻：开局一条蛇·我无限进化》。']}},
+ {id:'pan-yuechen',group:'team',photo:'/team/pan-yuechen.jpg',photoPos:'50% 20%',zh:{name:'潘曰晨',role:'资深讲师',headline:'5 年编导经验，江西省编导大赛一等奖',bio:['潘曰晨，影视行业资深编导，5 年编导经验，曾获得江西省编导大赛一等奖，曾任职上市公司线宣以及视频制作，5 年讲师经验，教学风格幽默风趣。']}},
+ {id:'peng-jun',group:'team',photo:'/team/peng-jun.jpg',photoNote:'待补高清照片',zh:{name:'彭俊',role:'资深讲师',headline:'8 年设计师、AIGC 制作师，熟悉 ComfyUI、即梦、豆包',bio:['彭俊，8 年资深设计师、AIGC 制作师，内训讲师。上市公司美学指导，熟悉 ComfyUI、即梦、豆包等多种人工智能工具，能够高效结合 AI 技术提升设计效率与质量，实现创意与技术的融合应用。']}},
+ {id:'du-haotian',group:'staff',photo:'/team/du-haotian.jpg',photoRound:true,photoNote:'待补原图',zh:{name:'杜皓天',role:'带班班主任',headline:'资深企业培训与 AI 应用赋能专家',bio:['杜皓天，深港产学研基地（北京大学深圳研究院）培训中心带班班主任，资深企业培训与 AI 应用赋能专家。北京大学深圳研究院企业高层管理能力提升研修班、企业 AI 实战研修班带班班主任。','深耕企业管理培训与 AI 落地应用一线，以“带班班主任 + 助教导师”双重角色为企业赋能：帮助企业管理者提升认知、拓宽视野，协助企业搭建 AI 应用生态，联合授课讲师团队共同为企业提供定制化 AI 解决方案，推动企业降本增效。','多次带领学员赴北京大学校本部游学参访，近距离了解北大最新科研成果，为企业学员带来前沿方向驱动与创新思路，助力企业实现数字化转型与商业价值升级。']}},
+ {id:'chen-meiling',group:'staff',photo:'/team/chen-meiling.jpg',photoRound:true,photoNote:'待补原图',zh:{name:'陈妹玲',role:'培训项目负责人',headline:'北大智能科技研修班、北大数智中国领军企业家班项目负责人',bio:['陈妹玲，深港产学研基地（北京大学深圳研究院）培训项目负责人。担任北大智能科技研修班 1-5 期、北大数智中国领军企业家班 1-3 期等多个标杆项目负责人及班主任。','具备资深的高端企业家班实战操盘经验，擅长企业家学员全周期服务、班级体系搭建、行业生态运营、产业资源对接与学员社群运营，深度服务各赛道领军企业家群体。','近年深度参与并统筹 AI、智能科技与数智化方向的高端企业家培养项目，依托北大深研院在人工智能、大模型与数字经济领域的项目矩阵，将学员全周期服务与产业资源对接能力延伸至 AI 产业赛道，助力企业家群体提升 AI 认知、搭建数智化生态、落地 AI 转型方案，推动企业降本增效与高质量发展。']}}
+];
+// 专家页首屏的 4 个事实：[大字, 金色小字, 说明]，每条写明是谁的
+const facts = {zh:[['金像奖 · 金马奖','','最佳视觉效果 · 技术顾问 罗伟豪'],['电影频道','','首位登陆 AIGC 电影幕后技术专访的电影制作人 · 技术顾问 张洪'],['190','万','注册用户产品核心开发者 · Agent 落地主讲 郑毅'],['4','位','工信部 AIGC 高级工程师 · 黄文定、孙书杰、刘大健、卢进忠']]};
+// 各组的标题和一句说明
+const groups = {
+ zh:{lead:['主讲专家','Agent 落地和 AIGC 创作两条主线，各由一位主讲专家负责。'],advisor:['技术顾问','把院线电影和视效的标准，带进 AIGC 创作与课堂。'],team:['讲师团队','影视制作、编导、设计、课程开发与 AI 应用等方向的一线讲师。'],staff:['班主任与项目负责人','负责开班组织、学员服务与项目统筹。'],more:'查看全部讲师（共 {n} 位）',less:'收起'},
+ en:{lead:['Lead experts',''],advisor:['Technical advisors',''],team:['Instructors',''],staff:['Class directors & program leads',''],more:'View all instructors ({n})',less:'Show fewer'},
+ vi:{lead:['Chuyên gia giảng dạy chính',''],advisor:['Cố vấn kỹ thuật',''],team:['Đội ngũ giảng viên',''],staff:['Chủ nhiệm lớp & phụ trách dự án',''],more:'Xem tất cả giảng viên ({n})',less:'Thu gọn'}
+};
+module.exports = {people, facts, groups};
