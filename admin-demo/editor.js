@@ -485,6 +485,22 @@ export function bindEditor(ctx) {
   };
   const fileInput = (field, clip) => document.querySelector(`[data-editor-file="${field}"]${clip === undefined ? '' : `[data-clip="${clip}"]`}`);
   let uploading = false;
+  // 保存/重绘前把当前表单里的值再抄一遍，避免输入法、上传重绘等导致最后一次输入没进草稿
+  function syncInputs() {
+    for (const el of document.querySelectorAll('[data-lang]')) record.draft[tab][el.dataset.lang] = el.value;
+    for (const el of document.querySelectorAll('[data-lang-list]')) listOf(el.dataset.langList)[Number(el.dataset.index)] = el.value;
+    for (const el of document.querySelectorAll('[data-outcome-title]')) { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] || {}; item.title = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] = item; }
+    for (const el of document.querySelectorAll('[data-outcome-text]')) { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeText)] || {}; item.text = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeText)] = item; }
+    for (const el of document.querySelectorAll('[data-shared-check]')) record.draft.shared[el.dataset.sharedCheck] = el.checked;
+    for (const el of document.querySelectorAll('[data-shared-select]')) record.draft.shared[el.dataset.sharedSelect] = el.value;
+    for (const el of document.querySelectorAll('[data-featured]')) record.featured = el.checked;
+    for (const el of document.querySelectorAll('[data-attachment-lang]')) {
+      const [index, lang] = el.dataset.attachmentLang.split(':'); const item = record.draft.shared.attachments[Number(index)];
+      if (!item) continue; const langs = new Set(item.langs || []);
+      if (el.checked) langs.add(lang); else langs.delete(lang); item.langs = [...langs];
+    }
+  }
+  window.__editorSync = syncInputs;
 
   for (const el of document.querySelectorAll('[data-lang]')) el.oninput = () => { record.draft[tab][el.dataset.lang] = el.value; refresh(); };
   for (const el of document.querySelectorAll('[data-lang-list]')) el.oninput = () => { listOf(el.dataset.langList)[Number(el.dataset.index)] = el.value; refresh(); };
@@ -545,7 +561,7 @@ export function bindEditor(ctx) {
       setStatus('');
       const message = result.sourceLimited ? '这张照片没有保留原图，只能在当前画面上缩放；要重新取景请用“替换图片”重新选原图。' : '照片位置已更新，点击保存草稿后写入内容';
       ctx.toast(result.warn ? `${message}（${result.warn}）` : message);
-      ctx.rerender();
+      syncInputs(); ctx.rerender();
     } catch (error) { setStatus(''); ctx.toast(error.message || '调整照片失败'); }
     finally { uploading = false; }
   }
@@ -563,7 +579,7 @@ export function bindEditor(ctx) {
         if (!prepared) return;
         record.draft.shared.image = prepared.saved;
         if (prepared.warn) ctx.toast(prepared.warn);
-        setStatus(''); ctx.toast('图片已上传，点击保存草稿后写入内容'); ctx.rerender();
+        setStatus(''); ctx.toast('图片已上传，点击保存草稿后写入内容'); syncInputs(); ctx.rerender();
       } else if (field === 'clip-video') {
         const check = validateMediaFile(file, 'video'); if (!check.ok) { ctx.toast(check.error); return; }
         setStatus('正在读取视频信息…');
@@ -575,18 +591,18 @@ export function bindEditor(ctx) {
         const clip = record.draft.shared.clips[clipIndex] || {};
         clip.video = video; clip.cover = cover || clip.cover || null; clip.duration = video.duration || prepared.meta.duration || 0;
         record.draft.shared.clips[clipIndex] = clip;
-        setStatus(''); ctx.toast('视频已上传，点击保存草稿后写入内容'); ctx.rerender();
+        setStatus(''); ctx.toast('视频已上传，点击保存草稿后写入内容'); syncInputs(); ctx.rerender();
       } else if (field === 'clip-cover') {
         const prepared = await prepareCoverImage(file); if (!prepared) return;
         const cover = await uploadMedia(prepared.file, { name: prepared.name, onProgress: p => setStatus(`正在上传封面 ${p}%`) });
         record.draft.shared.clips[clipIndex].cover = cover;
-        setStatus(''); ctx.toast('封面已上传'); ctx.rerender();
+        setStatus(''); ctx.toast('封面已上传'); syncInputs(); ctx.rerender();
       } else if (field === 'attachment') {
         const check = validateMediaFile(file, 'attachment'); if (!check.ok) { ctx.toast(check.error); return; }
         setStatus('正在上传附件…');
         const saved = await uploadMedia(file, { name: file.name, onProgress: p => setStatus(`正在上传附件 ${p}%`) });
         record.draft.shared.attachments.push({ file: saved, langs: ['zh', 'vi', 'en'] });
-        setStatus(''); ctx.toast('附件已上传，点击保存草稿后写入内容'); ctx.rerender();
+        setStatus(''); ctx.toast('附件已上传，点击保存草稿后写入内容'); syncInputs(); ctx.rerender();
       }
     } catch (error) {
       setStatus(''); ctx.toast(error.message || '上传失败');
