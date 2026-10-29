@@ -15,7 +15,8 @@ assert.throws(()=>core.listUsers(me),/只有主管理员/);
 assert.throws(()=>core.changePassword(editorToken,'wrong-pass-000','second-pass-123'),/原密码不正确/);
 assert.equal(core.changePassword(editorToken,'first-pass-123','second-pass-123').mustChange,false);
 // 子账号能保存草稿，不能发布、下架、删除；记录修改人
-let r=core.saveRecord({type:'courses',draft:{zh:{name:'子账号课程',description:'说明',image:{id:'c.png',size:1},attachments:[],clips:[]}}},me);
+const t=core.saveRecord({type:'experts',draft:{zh:{name:'权限讲师',identity:'主讲',tagline:'一句话'}}});
+let r=core.saveRecord({type:'courses',experts:[t.id],draft:{shared:{category:'cat-aigc'},zh:{name:'子账号课程',goals:'目标',description:'说明',audience:'零基础',outline:['第一章'],image:{id:'c.png',size:1},attachments:[],clips:[]}}},me);
 assert.equal(r.updatedBy,'张三');assert.throws(()=>core.publish(r.id,me),/没有发布权限/);assert.throws(()=>core.remove(r.id,me),/没有删除权限/);
 // 主管理员发布；给子账号开放发布权限后可以下架
 r=core.publish(r.id,owner);assert.equal(r.publishedBy,'主管理员');assert.throws(()=>core.offline(r.id,me),/没有下架权限/);

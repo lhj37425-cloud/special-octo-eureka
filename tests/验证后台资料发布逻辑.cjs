@@ -9,7 +9,7 @@ try{
  const make=n=>core.saveRecord({type:'qualifications',revision:0,draft:{zh:{name:`资质${n}`,description:'测试说明',image,attachments:[]},en:{},vi:{}}});
  // 资质发布需要名称、简介和资质图片
  const empty=core.saveRecord({type:'qualifications',revision:0,draft:{zh:{name:'只有名称',attachments:[]},en:{},vi:{}}});
- assert.throws(()=>core.publish(empty.id),/简介.*资质图片/);
+ assert.throws(()=>core.publish(empty.id),/资质图片[\s\S]*简短说明/);
  const ids=[1,2,3,4,5].map(n=>{const r=make(n);core.publish(r.id);return r.id});
  assert.equal(core.list(true).length,5);
  // 首页展示最多 3 张，未发布的不能设为首页展示

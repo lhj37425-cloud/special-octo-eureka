@@ -10,7 +10,7 @@ try{
  const full=n=>({name:`案例${n}`,industry:`行业${n}`,description:`简介${n}`,problem:'问题',steps:'第一步\n第二步',people:'分工',deliverables:'成果一\n成果二\n成果三\n成果四',highlight:'',evaluation:'',image,attachments:[],clips:[]});
  // 必填项不全不能发布
  const half=core.saveRecord({type:'cases',revision:0,draft:{zh:{name:'只有标题',attachments:[],clips:[]},en:{},vi:{}}});
- assert.throws(()=>core.publish(half.id),/行业.*简介.*案例图片.*业务问题.*应用方式.*人员分工.*交付成果/);
+ assert.throws(()=>core.publish(half.id),/案例图片[\s\S]*行业[\s\S]*简介[\s\S]*业务问题[\s\S]*应用方式[\s\S]*人员分工[\s\S]*交付成果/);
  core.remove(half.id);
  // 新案例自动获得网址和顺序编号
  const ids=[1,2,3,4].map(n=>{const r=core.saveRecord({type:'cases',revision:0,draft:{zh:full(n),en:{},vi:{}}});core.publish(r.id);return r.id});

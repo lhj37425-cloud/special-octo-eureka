@@ -1,5 +1,6 @@
 const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto');
 const core=require('./后台服务.cjs');
+const schema=require('./内容栏位.cjs');
 const port=Number(process.env.ADMIN_PORT||4181);
 const html=fs.readFileSync(path.join(__dirname,'admin-demo','index.html'),'utf8');
 const assets={
@@ -39,6 +40,10 @@ http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localho
  if(p==='/api/records'&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;const d=JSON.parse((await body(req)).toString()||'{}');return json(res,200,{record:core.saveRecord(d,user)})}
  let m=p.match(/^\/api\/records\/([^/]+)\/(publish|offline)$/);if(m&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;return json(res,200,{record:m[2]==='publish'?core.publish(m[1],user):core.offline(m[1],user)})}
  m=p.match(/^\/api\/records\/([^/]+)$/);if(m&&req.method==='DELETE'){const user=protectWrite(req,res);if(!user)return;core.remove(m[1],user);return json(res,200,{ok:true})}
+ if(p==='/api/schema'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{schema:{LANGS:schema.LANGS,TYPES:schema.TYPES}})}
+ if(p==='/api/options'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{options:core.listOptions()})}
+ if(p==='/api/options'&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;const d=JSON.parse((await body(req)).toString()||'{}');return json(res,200,{options:core.saveOptions(user,d)})}
+ if(p==='/api/order'&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;const d=JSON.parse((await body(req)).toString()||'{}');return json(res,200,{records:core.setOrder(user,d.type,d.ids)})}
  if(p==='/api/upload'&&req.method==='POST'){if(!protectWrite(req,res))return;const d=JSON.parse((await body(req)).toString()||'{}');const bytes=Buffer.from(String(d.base64||''),'base64');return json(res,201,{file:core.file(d.name,bytes,d.mime)})}
  m=p.match(/^\/media\/([^/]+)$/);if(m){const f=core.filePath(m[1]);if(!fs.existsSync(f))return json(res,404,{error:'文件不存在。'});if(!protect(req,res))return;const ext=path.extname(f).toLowerCase(),mime={'.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.mp4':'video/mp4','.pdf':'application/pdf','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'}[ext]||'application/octet-stream';const headers={'Content-Type':mime,'X-Content-Type-Options':'nosniff'};if(!['.jpg','.jpeg','.png','.webp','.mp4','.pdf'].includes(ext))headers['Content-Disposition']='attachment';res.writeHead(200,headers);return fs.createReadStream(f).pipe(res)}
  if(assets[p]){const [type,data]=assets[p];res.writeHead(200,{'Content-Type':type});return res.end(data)}json(res,404,{error:'不存在。'});
