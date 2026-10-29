@@ -1,13 +1,13 @@
 // 浏览器验证：子账号首次登录必须能进入“设置新密码”页，改密前不请求业务接口，改密后正常进入工作台
 const assert=require('assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
-let chromium;try{({chromium}=require('playwright'))}catch{console.error('缺少 Playwright：请先运行 npm install --no-save playwright 和 npx playwright install chromium，再执行本验证。');process.exit(1)}
+let chromium;try{({chromium}=require('D:/项目/node_modules/playwright'))}catch{console.error('缺少 Playwright：D:/项目/node_modules/playwright');process.exit(1)}
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-first-login-'));process.env.ADMIN_DATA_DIR=temp;process.env.MVP_DATA_DIR=temp;process.env.ADMIN_PORT='4393';
 const core=require('../后台服务.cjs');
 core.initialize('qa-admin','qa-password-123');const owner=core.auth(core.login('qa-admin','qa-password-123'));
 core.createUser(owner,{account:'qa-repro',name:'复现子账号',password:'qa-repro-pass-123',perms:{publish:false,backup:false,leads:true}});
 require('../后台服务器.js');
 const base='http://127.0.0.1:4393/';
-(async()=>{const browser=await chromium.launch();try{
+(async()=>{const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});try{
 const page=await browser.newPage(),errors=[],business=[];let changed=false;
 page.on('pageerror',e=>errors.push(e.message));
 page.on('response',r=>{const p=new URL(r.url()).pathname;if(!changed&&['/api/records','/api/leads'].includes(p))business.push(`${p} ${r.status()}`)});

@@ -82,7 +82,7 @@ function expertFields(record, draft, lang) {
     experience: asList(v.experience),
     photo: media(draft.shared.image),
     bigCard: !!draft.shared.bigCard,
-    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+    order: Number(record.order ?? 0),
   };
 }
 
@@ -109,7 +109,7 @@ function courseFields(record, draft, lang, teacherVisible) {
     name: v.name || '', intro: v.description || '', goals: String(v.goals || ''), audience: v.audience || '',
     outline: asList(v.outline), facts, outcomes, videos, materials, category,
     cover: media(shared.image), teacherIds, teacherId: teacherIds[0] || '',
-    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+    order: Number(record.order ?? 0),
   };
 }
 
@@ -122,7 +122,7 @@ function caseFields(record, draft, lang) {
   const v = draft[lang] || {};
   return {
     slug: record.slug || record.id, featured: !!record.featured, image: media(draft.shared.image),
-    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+    order: Number(record.order ?? 0),
     [lang]: {
       title: v.name || '', industry: v.industry || '', summary: v.description || '', problem: v.problem || '',
       steps: asList(v.steps), people: v.people || '', deliverables: asList(v.deliverables),
@@ -176,7 +176,7 @@ function content(override = null) {
       languages[lang] = languageComplete(record, draft, lang);
       if (lang !== 'zh' && languages[lang]) translations[lang] = qualificationFields(record, draft, lang);
     }
-    return { id: record.id, published: true, featured: !!record.featured, languages, translations, ...qualificationFields(record, draft, 'zh'), order: Number(record.publishedSettings?.order ?? record.order ?? 0) };
+    return { id: record.id, published: true, featured: !!record.featured, languages, translations, ...qualificationFields(record, draft, 'zh'), order: Number(record.order ?? 0) };
   }).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.order - b.order);
 
   return { courses, teachers, qualifications };
@@ -190,7 +190,7 @@ function qualifications(lang, override = null) {
     if (!languageComplete(record, draft, lang)) return null;
     const v = draft[lang] || {}, image = draft.shared.image;
     if (!v.name || !image) return null;
-    return { featured: !!record.featured, order: Number(record.publishedSettings?.order ?? record.order ?? 0), item: [v.name, v.description || '', media(image)] };
+    return { featured: !!record.featured, order: Number(record.order ?? 0), item: [v.name, v.description || '', media(image)] };
   }).filter(Boolean).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.order - b.order).map(x => x.item);
 }
 
@@ -198,7 +198,7 @@ function qualifications(lang, override = null) {
 function cases(lang, override = null) {
   const records = readRecords(override).filter(r => r.type === 'cases').map(record => ({ record, draft: normalize(record) }))
     .filter(({ record, draft }) => languageComplete(record, draft, lang) && draft[lang]?.name && draft.shared.image)
-    .sort((a, b) => (a.record.publishedSettings?.order ?? a.record.order ?? 0) - (b.record.publishedSettings?.order ?? b.record.order ?? 0));
+    .sort((a, b) => (a.record.order || 0) - (b.record.order || 0));
   return records.map(({ record, draft }, index) => ({ ...caseFields(record, draft, lang), no: String(index + 1).padStart(2, '0') }));
 }
 
