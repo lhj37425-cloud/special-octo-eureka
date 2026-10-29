@@ -43,6 +43,13 @@ assert.equal(expertOld.draft.zh.identity,'咨询顾问');assert.equal(expertOld.
 assert.equal(expertOld.draft.zh.role,'咨询顾问','旧栏位一律保留（K1）');assert.equal(expertOld.draft.shared.image.id,'old.png');
 assert.throws(()=>core.saveRecord({type:'experts',id:expertOld.id,revision:expertOld.revision,draft:{zh:{highlights:['一','二','三','四']}}},owner),/最多 3 条/,'列表超条数上限直接报错（B4）');
 const expert=core.saveRecord({type:'experts',id:expertOld.id,revision:expertOld.revision,draft:{zh:{name:'郑毅',identity:'Agent 落地 · 主讲',tagline:'十年一线落地',bio:'简介',highlights:['带过 30 个项目']},shared:{bigCard:false}}},owner);
+// 旧界面在共用区 image 为 null 时往某种语言上传照片，保存后不能丢（K1）
+const legacyUiInput=JSON.parse(JSON.stringify(expert));legacyUiInput.draft.zh.image={id:'legacy-photo.jpg',name:'谢香.jpg',size:80000};
+const withLegacyPhoto=core.saveRecord(legacyUiInput,owner);
+assert.equal(withLegacyPhoto.draft.shared.image.id,'legacy-photo.jpg','旧界面上传的照片要收进共用区');
+assert.equal(withLegacyPhoto.draft.vi.image.id,'legacy-photo.jpg','双写到三种语言的旧栏位');
+const clearInput=JSON.parse(JSON.stringify(withLegacyPhoto));clearInput.draft.shared.image=null;
+assert.equal(core.saveRecord(clearInput,owner).draft.shared.image,null,'新界面清空共用图仍然有效');
 console.log('专家旧数据兼容与双写验证通过');
 
 // —— K2 旧数据兼容 + K1 双写（课程）——
