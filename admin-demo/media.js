@@ -70,6 +70,7 @@ function ensureStyles() {
   .media-crop-stage.is-dragging{cursor:grabbing}
   .media-crop-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
   .media-crop-bar input[type=range]{flex:1;accent-color:#21785b}
+  .media-crop-tip{margin:10px 0 0;color:#334155;background:#f1f5f9;border-radius:8px;padding:8px 10px;font-size:12px}
   .media-crop-warning{margin:10px 0 0;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;font-size:13px}
   .media-crop-warning[hidden]{display:none}
   .media-crop-info{margin:8px 0 0;color:#64748b;font-size:12px}
@@ -93,7 +94,7 @@ export function openCropper(bitmap, preset, { title } = {}) {
   const dialog = document.createElement('dialog');
   dialog.className = 'media-crop';
   dialog.setAttribute('data-media-cropper', preset.label);
-  dialog.innerHTML = `<div class="media-crop-inner"><div class="media-crop-head"><h2>${title || preset.label}</h2><small>${preset.shape === 'circle' ? '圆形预览' : preset.aspect ? '拖动、缩放选择画面' : '完整显示，不裁剪'}</small></div><div class="media-crop-stage${preset.shape === 'circle' ? ' is-circle' : ''}" data-crop-stage><canvas data-crop-canvas></canvas></div><p class="media-crop-warning" data-crop-warning hidden></p><div class="media-crop-bar"><span>缩放</span><input type="range" min="100" max="400" value="100" data-crop-zoom ${preset.contain ? 'disabled' : ''}><span>${preset.out[0]}×${preset.out[1]}</span></div><p class="media-crop-info" data-crop-info></p><div class="media-crop-actions"><button type="button" data-crop-cancel>取消</button><button type="button" data-crop-confirm>确认使用</button></div></div>`;
+  dialog.innerHTML = `<div class="media-crop-inner"><div class="media-crop-head"><h2>${title || preset.label}</h2><small>${preset.contain ? '完整显示，不裁剪' : '按住图片拖动 · 滑杆缩放'}</small></div><div class="media-crop-stage${preset.shape === 'circle' ? ' is-circle' : ''}" data-crop-stage><canvas data-crop-canvas></canvas></div><p class="media-crop-tip">${preset.contain ? '图片完整显示，不裁剪，长边压到 2400 以内。' : '按住图片拖动位置；用下面的“缩放”滑杆放大或缩小。框内就是最终画面。'}</p><p class="media-crop-warning" data-crop-warning hidden></p><div class="media-crop-bar"><span>缩放</span><input type="range" min="100" max="400" value="100" data-crop-zoom ${preset.contain ? 'disabled' : ''}><span>${preset.out[0]}×${preset.out[1]}</span></div><p class="media-crop-info" data-crop-info></p><div class="media-crop-actions"><button type="button" data-crop-cancel>取消</button><button type="button" data-crop-confirm>确认使用</button></div></div>`;
   document.body.appendChild(dialog);
 
   const stage = dialog.querySelector('[data-crop-stage]');
@@ -112,7 +113,7 @@ export function openCropper(bitmap, preset, { title } = {}) {
     warn.hidden = false;
     warn.textContent = `原图偏小（${imgW}×${imgH}，建议至少 ${preset.min[0]}×${preset.min[1]}）。仍然可以上传，但放大后可能不够清晰。`;
   }
-  info.textContent = `原图 ${imgW}×${imgH}${preset.contain ? ' · 不裁剪，长边压到 2400 以内' : ' · 黄框内为最终画面'}`;
+  info.textContent = `原图 ${imgW}×${imgH}${preset.contain ? ' · 不裁剪，长边压到 2400 以内' : ' · 按住图片拖动，滑杆缩放'}`;
 
   const containScale = Math.min(frameW / imgW, frameH / imgH);
   const coverScale = Math.max(frameW / imgW, frameH / imgH);
