@@ -77,7 +77,7 @@ if(removed.type==='experts')for(const r of state.records){if(r.type!=='courses')
 write(state);
 // 删除这条内容独有的上传文件（其他内容仍在用的保留）；需要时可从备份恢复
 const stillUsed=new Set(state.records.flatMap(fileIds));for(const fileId of fileIds(removed))if(!stillUsed.has(fileId))fs.rmSync(filePath(fileId),{force:true})}
-function fileIds(record){const ids=[],push=f=>{if(typeof f?.id==='string')ids.push(f.id)};for(const version of [record.draft,record.published]){const s=version?.shared||{};push(s.image);for(const c of s.clips||[]){push(c?.video);push(c?.cover)}for(const a of s.attachments||[])push(a?.file);for(const lang of langs){const v=version?.[lang]||{};for(const item of [v.image,...(v.attachments||[]),...(v.clips||[]).flatMap(c=>[c.video,c.cover])])push(item)}}return ids}
+function fileIds(record){const ids=[],push=f=>{if(typeof f?.id==='string'){ids.push(f.id);if(f.source?.id)ids.push(f.source.id)}};for(const version of [record.draft,record.published]){const s=version?.shared||{};push(s.image);for(const c of s.clips||[]){push(c?.video);push(c?.cover)}for(const a of s.attachments||[])push(a?.file);for(const lang of langs){const v=version?.[lang]||{};for(const item of [v.image,...(v.attachments||[]),...(v.clips||[]).flatMap(c=>[c.video,c.cover])])push(item)}}return ids}
 // 列表按 order 排序（决定 D6/F2）：保存顺序后后台列表和 list(true) 都按新顺序
 function list(publicOnly=false){const records=[...read().records].sort((a,b)=>(a.order||0)-(b.order||0));if(!publicOnly)return clone(records);return clone(records.filter(r=>r.status==='published'&&r.published));}
 // 上传：先按真实内容校验类型和大小（M5、M6、M9），再把宽、高、时长一起记进文件信息

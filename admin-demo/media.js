@@ -222,8 +222,23 @@ export function openCropper(bitmap, preset, { title } = {}) {
   });
 }
 
-// 图片入口（M2–M5）：检查 → 裁剪 → 压缩，返回可直接上传的 JPEG
-export async function prepareImage(file, { preset = 'expert', title } = {}) {
+// 保留一张长边 2400 的未裁剪原图，供以后“调整位置”重新取景；JPEG 压缩后一般不到 1MB
+async function makeSourceFile(bitmap, file) {
+  const max = 2400, scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const blob = await toBlob(canvas, 0.82);
+  const name = String(file.name || 'image').replace(/\.[^.]+$/, '') + '-原图.jpg';
+  return new File([blob], name, { type: 'image/jpeg' });
+}
+
+// 图片入口（M2–M5）：检查 → 裁剪 → 压缩，返回可直接上传的 JPEG；withSource 时另带未裁剪原图
+export async function prepareImage(file, { preset = 'expert', title, withSource = false } = {}) {
   const config = IMAGE_PRESETS[preset];
   if (!config) throw Error('图片用途不正确。');
   const check = validateMediaFile(file, 'image');
@@ -233,7 +248,8 @@ export async function prepareImage(file, { preset = 'expert', title } = {}) {
     const result = await openCropper(bitmap, config, { title });
     if (!result) return null;
     const name = String(file.name || 'image').replace(/\.[^.]+$/, '') + '.jpg';
-    return { ...result, name, file: new File([result.blob], name, { type: 'image/jpeg' }) };
+    const sourceFile = withSource ? await makeSourceFile(bitmap, file) : null;
+    return { ...result, name, file: new File([result.blob], name, { type: 'image/jpeg' }), sourceFile };
   } finally {
     bitmap.close?.();
   }
@@ -360,10 +376,29 @@ export function uploadMedia(fileOrBlob, { name, onProgress } = {}) {
   });
 }
 
-// 图片一条龙：裁剪压缩后直接上传（第 3 步表单用）
+// 图片一条龙：裁剪压缩后直接上传；同时存一张未裁剪原图，供以后“调整位置”（第 3、4 步表单用）
 export async function prepareAndUploadImage(file, { preset = 'expert', title, onProgress } = {}) {
-  const prepared = await prepareImage(file, { preset, title });
+  const prepared = await prepareImage(file, { preset, title, withSource: true });
   if (!prepared) return null;
   const saved = await uploadMedia(prepared.file, { name: prepared.name, onProgress });
+  if (prepared.sourceFile) {
+    try { saved.source = await uploadMedia(prepared.sourceFile, { name: prepared.sourceFile.name }); }
+    catch { /* 原图没存上也不影响已裁好的照片，只是以后不能重新取景 */ }
+  }
   return { ...prepared, saved };
+}
+
+// 已上传照片重新调整位置：优先用保存的原图；没有原图时只能用当前裁好的图（移动余量有限）
+export async function adjustUploadedImage(existing, { preset = 'expert' } = {}) {
+  if (!existing?.id) throw Error('找不到这张照片。');
+  const source = existing.source?.id ? existing.source : existing;
+  const response = await fetch(`/media/${encodeURIComponent(source.id)}`);
+  if (!response.ok) throw Error('读取照片失败，请重新上传。');
+  const blob = await response.blob();
+  const file = new File([blob], existing.name || 'image.jpg', { type: blob.type || 'image/jpeg' });
+  const prepared = await prepareImage(file, { preset });
+  if (!prepared) return null;
+  const saved = await uploadMedia(prepared.file, { name: prepared.name });
+  if (existing.source?.id) saved.source = existing.source;
+  return { saved, sourceLimited: !existing.source?.id, warn: prepared.warn || '' };
 }

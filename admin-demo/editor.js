@@ -1,6 +1,6 @@
 // 专家、课程的新编辑页（方案 4.1–4.3、第 3 步）：按 内容栏位.cjs 的栏位表生成表单。
 // 共用区只填一次；文字分中文、越南语、英文；字数、三语检查、列表增删排序都在这里。
-import { prepareAndUploadImage, prepareVideo, captureFrame, prepareCoverImage, uploadMedia, validateMediaFile } from './media.js';
+import { prepareAndUploadImage, adjustUploadedImage, prepareVideo, captureFrame, prepareCoverImage, uploadMedia, validateMediaFile } from './media.js';
 
 export const SCHEMA_TYPES = ['experts', 'courses', 'cases', 'qualifications'];
 export const LANG_NAME = { zh: '中文', vi: '越南语', en: '英文' };
@@ -214,8 +214,9 @@ function renderImageField(record, field, { preset, round = false, wide = false, 
     <div class="se-media">
       ${image ? `<img class="${round ? 'is-round' : wide ? 'is-wide' : ''}" src="${ui.mediaURL(image)}" alt="${esc(image.name || label)}">` : `<div class="se-placeholder ${wide ? 'is-wide' : ''}">${ui.icon('upload')}<span>${round ? '正方形照片' : preset === 'qualification' ? '完整图片' : preset === 'case' ? '16:10 图片' : wide ? '16:9 图片' : '图片'}</span></div>`}
       <div class="se-media-actions">
-        <div class="se-actions">${btn(image ? '替换图片' : '上传图片', `pick:${field}`)}${image ? btn('移除', `remove-shared:${field}`, 'text-btn danger-link') : ''}</div>
+        <div class="se-actions">${btn(image ? '替换图片' : '上传图片', `pick:${field}`)}${image && preset !== 'qualification' ? btn('调整位置', `adjust-image:${field}`, 'text-btn') : ''}${image ? btn('移除', `remove-shared:${field}`, 'text-btn danger-link') : ''}</div>
         <div class="small muted">JPG / PNG / WebP · 原图不超过 20MB${round ? ' · 上传后裁成正方形' : preset === 'qualification' ? ' · 不裁剪，完整显示，长边压到 2400 以内' : preset === 'case' ? ' · 上传后裁成 16:10' : ' · 上传后按比例裁剪'}</div>
+        ${image && preset !== 'qualification' ? '<div class="small muted">已上传的照片可以点“调整位置”重新拖动取景。</div>' : ''}
       </div>
     </div>
     <input type="file" hidden data-editor-file="${field}" accept=".jpg,.jpeg,.png,.webp">
@@ -530,6 +531,25 @@ export function bindEditor(ctx) {
     };
   }
 
+  async function adjustImage(field) {
+    const current = record.draft.shared[field];
+    if (!current) return;
+    if (!current.source?.id) ctx.toast('这张照片没有保留原图；拖动只在四周还有剩余画面时有效，要重新取景请用“替换图片”重新选原图。');
+    const preset = { experts: 'expert', courses: 'course', cases: 'case' }[record.type] || 'course';
+    uploading = true;
+    setStatus('正在读取原图…');
+    try {
+      const result = await adjustUploadedImage(current, { preset });
+      if (!result) { setStatus(''); return; }
+      record.draft.shared[field] = result.saved;
+      setStatus('');
+      const message = result.sourceLimited ? '这张照片没有保留原图，只能在当前画面上缩放；要重新取景请用“替换图片”重新选原图。' : '照片位置已更新，点击保存草稿后写入内容';
+      ctx.toast(result.warn ? `${message}（${result.warn}）` : message);
+      ctx.rerender();
+    } catch (error) { setStatus(''); ctx.toast(error.message || '调整照片失败'); }
+    finally { uploading = false; }
+  }
+
   async function handleFile(input) {
     if (uploading) return;
     const file = input.files?.[0], field = input.dataset.editorFile, clipIndex = input.dataset.clip === undefined ? null : Number(input.dataset.clip);
@@ -593,6 +613,7 @@ export function bindEditor(ctx) {
   async function runAction(act, a, b) {
     if (act === 'tab') { if (ctx.setTab) ctx.setTab(a); return; }
     if (act === 'pick') { fileInput(a, b === undefined ? undefined : Number(b))?.click(); return; }
+    if (act === 'adjust-image') { await adjustImage(a); return; }
     if (act === 'remove-shared') {
       if (await ask('移除这个共用文件？', '三种语言都会移除；已发布版本保留到再次发布。') !== 'ok') return;
       record.draft.shared[a] = null; ctx.rerender(); return;
