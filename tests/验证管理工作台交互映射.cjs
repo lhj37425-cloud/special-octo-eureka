@@ -17,6 +17,11 @@ assert.match(mediaCode,/xhr\.open\('POST',\s*'\/api\/upload'\)/);
 assert.match(mediaCode,/xhr\.setRequestHeader\('X-File-Name'/);
 assert.ok(server.includes("'/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.js'))]"));
 assert.ok(server.includes("'/media.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','media.js'))]"));
+const editorCode=fs.readFileSync(path.join(root,'admin-demo','editor.js'),'utf8');
+assert.match(editorCode,/export function renderEditorPage/);
+assert.match(editorCode,/export function ensureDraft/);
+assert.match(editorCode,/data-editor-action/);
+assert.ok(server.includes("'/editor.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','editor.js'))]"));
 
 // 每一类可操作按钮都必须有明确处理器，且落到真实保存或上传。
 for(const operation of [
@@ -31,7 +36,7 @@ for(const operation of [
 assert.doesNotMatch(workbench,/查看前台|window\.open\(PUBLIC/);
 assert.match(workbench,/await logoutRequest\(\)/);
 assert.match(workbench,/await saveEditing\(\)/);
-assert.match(workbench,/copy\._action='publish'/);
+assert.match(workbench,/publishRecord\(record\.id\)/);
 assert.match(workbench,/record\._action='offline'/);
 assert.match(workbench,/if\(!await persist\(\)\)/);
 assert.match(workbench,/pickFile\(arg,arg2===undefined\?null:\+arg2\)/);

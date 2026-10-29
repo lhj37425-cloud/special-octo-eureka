@@ -70,6 +70,16 @@ assert.ok(published.report.languages.zh.show&&published.report.languages.vi.show
 assert.deepEqual(published.publishedSettings.experts,[expert.id]);
 console.log('发布校验通过并返回三语显示报告');
 
+// —— D3：某种语言填了一半也能发布，只报告不显示、缺什么 ——
+const half=core.saveRecord({type:'experts',draft:{zh:{name:'半翻专家',identity:'顾问',tagline:'一句话'},vi:{name:'Chuyên gia'}}},owner);
+const halfCheck=schema.publishCheck(core.read().records.find(r=>r.id===half.id));
+assert.equal(halfCheck.ok,true,'填了一半的越南语不能拦住发布');
+assert.equal(halfCheck.languages.vi.show,false);
+assert.ok(halfCheck.languages.vi.missing.includes('身份')&&halfCheck.languages.vi.missing.includes('一句话介绍'));
+const halfPublished=core.publish(half.id,owner);
+assert.equal(halfPublished.report.languages.vi.show,false);
+console.log('填了一半的语言也能发布，只报告不显示（D3）：通过');
+
 // —— 授课专家规则（B4、E1）——
 assert.throws(()=>core.saveRecord({type:'courses',id:courseOld.id,revision:courseOld.revision,experts:['不存在的专家'],draft:{}},owner),/授课专家不存在/);
 const c2=core.saveRecord({type:'courses',id:courseOld.id,revision:courseOld.revision,experts:[expert.id],draft:{}},owner);

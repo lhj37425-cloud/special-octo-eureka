@@ -11,6 +11,7 @@ const assets={
  '/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.js'))],
  '/store.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','store.js'))],
  '/media.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','media.js'))],
+ '/editor.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','editor.js'))],
  '/favicon.svg':['image/svg+xml',fs.readFileSync(path.join(__dirname,'public','favicon.svg'))]
 };
 const json=(res,status,data,headers={})=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(data))};

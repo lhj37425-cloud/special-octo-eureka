@@ -218,10 +218,12 @@ function publishCheck(record, records = []) {
     const { complete, missing } = langComplete(type, draft[lang]);
     languages[lang] = { show: complete, missing };
   }
-  // 只看这种语言自己的栏位表字段；双写回旧栏位的共用媒体（视频、附件镜像）不算“已开始填写”
-  const started = lang => { const v = draft?.[lang] || {}; return TYPES[type].lang.some(f => { const x = v[f.key]; return Array.isArray(x) ? x.length : String(x ?? '').trim(); }); };
-  for (const lang of LANGS) if (!languages[lang].show && started(lang)) errors.push(`${langName(lang)}还缺：${languages[lang].missing.join('、')}`);
-  if (!LANGS.some(l => languages[l].show)) errors.push('至少把一种语言的必填项填完才能发布');
+  // D3：某种语言没填完（填了一半也一样）不拦发布，只在 languages 里报告“不显示、缺什么”。
+  // 但一种语言都没填完时不能发布，报错里写清每种语言缺什么（4.8）
+  if (!LANGS.some(l => languages[l].show)) {
+    const details = LANGS.filter(l => languages[l].missing.length).map(l => `${langName(l)}缺：${languages[l].missing.join('、')}`).join('；');
+    errors.push('至少把一种语言的必填项填完才能发布' + (details ? `（${details}）` : ''));
+  }
   for (const o of overLimit(type, draft)) errors.push(`${o.label}（${langName(o.lang)}）${o.count} / ${o.max}，超过上限`);
   if (type === 'experts' && shared.bigCard) {
     const big = records.filter(r => r.type === 'experts' && r.id !== record.id && r.status === 'published' && (r.published?.shared?.bigCard ?? r.draft?.shared?.bigCard));
