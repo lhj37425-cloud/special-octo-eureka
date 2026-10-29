@@ -155,6 +155,9 @@
 /* 只给读屏软件读的标题 */
 .v2-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .v2-lead-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+/* 大卡单数时最后一张居中（F6） */
+.v2-lead-grid.is-single{grid-template-columns:minmax(0,1fr);justify-items:center}
+.v2-lead-grid.is-single .v2-lead2{width:100%;max-width:calc(50% - 12px)}
 .v2-lead2{display:grid;grid-template-columns:200px minmax(0,1fr);gap:30px;align-items:start;padding:28px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:var(--sh-sm)}
 .v2-lead2-photo{width:172px;margin-top:4px;justify-self:center}
 .v2-focus{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:700;color:var(--red)}
@@ -226,6 +229,7 @@
   .v2-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .v2-team-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .v2-lead-grid{grid-template-columns:1fr}
+  .v2-lead-grid.is-single .v2-lead2{max-width:none}
   .v2-goal-grid.n4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .v2-preview-one{grid-template-columns:1fr;gap:28px}
   .v2-bio-grid.is-single .v2-bio-main{grid-template-columns:1fr;gap:0}

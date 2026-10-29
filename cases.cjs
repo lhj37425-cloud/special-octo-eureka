@@ -1,7 +1,7 @@
 // 应用案例页面：/{lang}/cases/{slug}/
 // 案例内容来自后台“应用案例”中已发布的记录，每次请求时读取，后台发布或下架后前台自动更新。
 const fs = require('fs'), path = require('path');
-const adminCore = require('./后台服务.cjs');
+const frontData = require('./前台数据.cjs');
 
 const L = {
   zh: { overview: '案例概览', industryLabel: '行业', flowLabel: '实施过程', moreCases: '查看全部案例', deliverLabel: '交付成果', listTitle: '全部应用案例', listIntro: '来自制造、贸易和服务企业的真实工作场景。每个案例都写清业务问题、AI 的用法、人员分工和交付成果。', viewCase: '查看案例', listCta: '想了解适合您企业的应用方式？', listCtaBtn: '预约咨询', crumb: '应用案例', caseNo: '应用案例', problem: '业务问题', how: '应用方式', people: '人员分工', deliverables: '交付成果', evaluation: '评估重点', imageNote: '应用案例示意', prev: '上一个案例', next: '下一个案例', cta: '咨询类似方案', aboutTitle: '关于EVOL DREAM | EVOL DREAM', aboutNav: '关于我们', option: ['项目实施', '合作交流'], notFound: '没有找到这个案例' },
@@ -11,16 +11,8 @@ const L = {
 
 function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 const lines = v => String(v || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-// 读取某语言可显示的案例：编号按后台全部已发布案例的顺序排列，三种语言编号一致；该语言没填写的案例不显示
-function loadCases(lang) {
-  const all = adminCore.list(true).filter(r => r.type === 'cases').sort((a, b) => (a.order || 0) - (b.order || 0));
-  return all.map((r, i) => {
-    const v = r.published[lang] || {}, image = v.image || r.published.zh?.image || r.published.en?.image || r.published.vi?.image;
-    if (!v.name || !image) return null;
-    return { slug: r.slug || r.id, no: String(i + 1).padStart(2, '0'), featured: !!r.featured, image: `/admin-media/${image.id}`,
-      [lang]: { title: v.name, industry: v.industry || '', summary: v.description || '', problem: v.problem || '', steps: lines(v.steps), people: v.people || '', deliverables: lines(v.deliverables), highlight: v.highlight || '', evaluation: v.evaluation || '' } };
-  }).filter(Boolean);
-}
+// 读取某语言可显示的案例：编号按后台已发布案例的 order 排列，该语言没填完的案例不显示
+function loadCases(lang) { return frontData.cases(lang); }
 
 // 用“关于我们”页面作为外框（页头、页脚、联系表单），只替换中间内容
 function shell(lang, publicRoot, pagePath, title, desc, main) {

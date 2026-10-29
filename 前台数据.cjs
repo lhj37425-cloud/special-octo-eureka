@@ -1,0 +1,201 @@
+// 前台唯一取数口（方案 3.1、第 5 步）：只读后台发布快照，整理成每种语言能直接渲染的数据。
+// 规则：只保留“已发布 + 该语言必填项都填了”的内容；没填完的语言不显示，也不拿别的语言补。
+// 顺序、大卡、授课专家、片段、附件、课程信息名称都按后台发布快照和选项整理。
+const schema = require('./内容栏位.cjs');
+const core = require('./后台服务.cjs');
+
+const LANGS = schema.LANGS;
+const media = file => file?.id ? `/admin-media/${encodeURIComponent(file.id)}` : '';
+const asList = value => Array.isArray(value) ? value.map(x => String(x ?? '')).filter(x => x.trim()) : String(value ?? '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+const aligned = value => Array.isArray(value) ? value.map(x => String(x ?? '')) : String(value ?? '').split(/\r?\n/);
+const paragraphs = value => String(value ?? '').split(/\r?\n\s*\r?\n/).map(x => x.trim()).filter(Boolean);
+const optionName = (list, id, lang) => { const option = (list || []).find(x => x.id === id); return option ? (option[lang] || option.zh || '') : ''; };
+
+// 旧记录没有共用区：从旧的语言栏位推导（与后台 normalizeDraft 相同）；不修改数据文件
+function normalize(record) {
+  const p = record.published || {};
+  const draft = { shared: { ...(p.shared || {}) }, zh: { ...(p.zh || {}) }, vi: { ...(p.vi || {}) }, en: { ...(p.en || {}) } };
+  const shared = draft.shared;
+  if (!shared.image) for (const lang of LANGS) { const image = draft[lang].image; if (image) { shared.image = image; break; } }
+  if (!Array.isArray(shared.clips) || !shared.clips.length) {
+    const old = LANGS.map(lang => draft[lang].clips || []).find(list => list.length) || [];
+    shared.clips = old.filter(c => c && c.video).map(c => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0 }));
+  } else {
+    shared.clips = shared.clips.filter(c => c && c.video);
+  }
+  if (!Array.isArray(shared.attachments) || !shared.attachments.length) {
+    const byId = new Map();
+    for (const lang of LANGS) for (const item of draft[lang].attachments || []) {
+      const file = item?.file?.id ? item.file : item?.id ? item : null;
+      if (!file?.id) continue;
+      const entry = byId.get(file.id) || { file, langs: [] };
+      if (!entry.langs.includes(lang)) entry.langs.push(lang);
+      byId.set(file.id, entry);
+    }
+    shared.attachments = [...byId.values()];
+  } else {
+    shared.attachments = shared.attachments.filter(item => item && item.file?.id);
+  }
+  if (!Array.isArray(shared.experts) || !shared.experts.length) shared.experts = (record.publishedSettings?.experts || record.experts || []).slice(0, 6);
+  const options = core.listOptions();
+  if (record.type === 'courses') {
+    if (!shared.category) {
+      const name = String(draft.zh.category || draft.vi.category || draft.en.category || '').trim();
+      const found = (options.courseCategories || []).find(o => o.zh === name);
+      if (found) shared.category = found.id;
+    }
+    for (const lang of LANGS) {
+      const v = draft[lang];
+      if (!Array.isArray(v.clipTitles) || !v.clipTitles.length) v.clipTitles = (draft[lang].clips || []).map(c => String(c?.title || ''));
+      if (!Array.isArray(v.attachmentNames) || !v.attachmentNames.length) v.attachmentNames = shared.attachments.map(item => {
+        const old = (draft[lang].attachments || []).find(a => (a.file?.id || a.id) === item.file.id);
+        return String(old?.displayName || '');
+      });
+    }
+  }
+  if (record.type === 'experts') {
+    for (const lang of LANGS) {
+      const v = draft[lang];
+      if (!v.identity && v.role) v.identity = String(v.role);
+      if (!v.bio && v.description) v.bio = String(v.description);
+    }
+  }
+  return draft;
+}
+
+// 某种语言是否算填完；旧记录没有新必填项时，用旧栏位判断，保证 K2 的旧资料照样显示
+function languageComplete(record, draft, lang) {
+  const v = draft[lang] || {};
+  if (record.type === 'experts' && !('tagline' in v)) return !!(String(v.name || '').trim() && String(v.identity || v.role || '').trim());
+  if (record.type === 'courses' && !('goals' in v)) return !!(String(v.name || '').trim() && String(v.description || '').trim() && String(v.audience || '').trim() && asList(v.outline).length);
+  return schema.langComplete(record.type, v).complete;
+}
+
+function expertFields(record, draft, lang) {
+  const v = draft[lang] || {};
+  return {
+    name: v.name || '',
+    identity: v.identity || v.role || '',
+    tagline: v.tagline || '',
+    highlights: asList(v.highlights).slice(0, 3),
+    bio: paragraphs(v.bio || v.description),
+    experience: asList(v.experience),
+    photo: media(draft.shared.image),
+    bigCard: !!draft.shared.bigCard,
+    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+  };
+}
+
+function courseFields(record, draft, lang, teacherVisible) {
+  const v = draft[lang] || {}, shared = draft.shared, options = core.listOptions();
+  const factLabels = shared.factLabels || [], factValues = aligned(v.factValues);
+  const facts = factLabels.map((id, i) => [optionName(options.courseFacts, id, lang), factValues[i] || '']).filter(([label, value]) => label && value);
+  const outcomes = (Array.isArray(v.outcomes) ? v.outcomes : []).map(item => [String(item?.title || ''), String(item?.text || '')]).filter(([title, text]) => title || text);
+  const clipTitles = aligned(v.clipTitles);
+  const videos = (shared.clips || []).map((clip, i) => {
+    if (!clip?.video?.id) return null;
+    const title = String(clipTitles[i] || '');
+    if (!title.trim()) return null;
+    return { name: title, title, url: media(clip.video), poster: media(clip.cover) || media(shared.image), duration: Number(clip.duration || clip.video.duration || 0) };
+  }).filter(Boolean);
+  const names = aligned(v.attachmentNames);
+  const materials = (shared.attachments || []).map((item, i) => {
+    if (!item.file?.id || !(item.langs || []).includes(lang)) return null;
+    return { name: names[i] || item.file.name || '', url: media(item.file) };
+  }).filter(Boolean);
+  const teacherIds = (shared.experts || []).filter(id => teacherVisible(id, lang));
+  const category = optionName(options.courseCategories, shared.category, lang) || String(v.category || '');
+  return {
+    name: v.name || '', intro: v.description || '', goals: String(v.goals || ''), audience: v.audience || '',
+    outline: asList(v.outline), facts, outcomes, videos, materials, category,
+    cover: media(shared.image), teacherIds, teacherId: teacherIds[0] || '',
+    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+  };
+}
+
+function qualificationFields(record, draft, lang) {
+  const v = draft[lang] || {};
+  return { name: v.name || '', intro: v.description || '', photo: media(draft.shared.image) };
+}
+
+function caseFields(record, draft, lang) {
+  const v = draft[lang] || {};
+  return {
+    slug: record.slug || record.id, featured: !!record.featured, image: media(draft.shared.image),
+    order: Number(record.publishedSettings?.order ?? record.order ?? 0),
+    [lang]: {
+      title: v.name || '', industry: v.industry || '', summary: v.description || '', problem: v.problem || '',
+      steps: asList(v.steps), people: v.people || '', deliverables: asList(v.deliverables),
+      highlight: v.highlight || '', evaluation: v.evaluation || '',
+    },
+  };
+}
+
+// 预览用：把某一条的发布快照换成草稿；其余内容仍用发布版（第 6 步用）
+function readRecords(override = null) {
+  const records = core.list(true);
+  if (!override || !override.id || !override.draft) return records;
+  return records.map(record => record.id === override.id ? {
+    ...record,
+    published: override.draft,
+    publishedSettings: { category: record.category, order: record.order, experts: record.experts },
+  } : record);
+}
+
+function content(override = null) {
+  const records = readRecords(override);
+  const teachers = records.filter(r => r.type === 'experts').map(record => {
+    const draft = normalize(record), languages = {}, translations = {};
+    for (const lang of LANGS) {
+      languages[lang] = languageComplete(record, draft, lang);
+      if (lang !== 'zh' && languages[lang]) translations[lang] = expertFields(record, draft, lang);
+    }
+    return { id: record.id, published: true, languages, translations, ...expertFields(record, draft, 'zh') };
+  }).sort((a, b) => a.order - b.order);
+  const teacherById = new Map(teachers.map(item => [item.id, item]));
+  const teacherVisible = (id, lang) => !!teacherById.get(id)?.languages?.[lang];
+
+  const courses = records.filter(r => r.type === 'courses').map(record => {
+    const draft = normalize(record), languages = {}, translations = {};
+    for (const lang of LANGS) {
+      languages[lang] = languageComplete(record, draft, lang);
+      if (lang !== 'zh' && languages[lang]) translations[lang] = courseFields(record, draft, lang, teacherVisible);
+    }
+    return { id: record.id, published: true, languages, translations, ...courseFields(record, draft, 'zh', teacherVisible) };
+  }).sort((a, b) => a.order - b.order);
+
+  const qualifications = records.filter(r => r.type === 'qualifications').map(record => {
+    const draft = normalize(record), languages = {}, translations = {};
+    for (const lang of LANGS) {
+      languages[lang] = languageComplete(record, draft, lang);
+      if (lang !== 'zh' && languages[lang]) translations[lang] = qualificationFields(record, draft, lang);
+    }
+    return { id: record.id, published: true, featured: !!record.featured, languages, translations, ...qualificationFields(record, draft, 'zh'), order: Number(record.publishedSettings?.order ?? record.order ?? 0) };
+  }).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.order - b.order);
+
+  return { courses, teachers, qualifications };
+}
+
+// 首页资质：只取这种语言有名称和图片的；勾首页展示的在前，其余按 order（F4）
+function qualifications(lang, override = null) {
+  const records = readRecords(override);
+  return records.filter(r => r.type === 'qualifications').map(record => {
+    const draft = normalize(record);
+    if (!languageComplete(record, draft, lang)) return null;
+    const v = draft[lang] || {}, image = draft.shared.image;
+    if (!v.name || !image) return null;
+    return { featured: !!record.featured, order: Number(record.publishedSettings?.order ?? record.order ?? 0), item: [v.name, v.description || '', media(image)] };
+  }).filter(Boolean).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.order - b.order).map(x => x.item);
+}
+
+// 案例：只取这种语言填完的；编号按 order 在这个语言的可见列表里从 01 开始（F5）
+function cases(lang, override = null) {
+  const records = readRecords(override).filter(r => r.type === 'cases').map(record => ({ record, draft: normalize(record) }))
+    .filter(({ record, draft }) => languageComplete(record, draft, lang) && draft[lang]?.name && draft.shared.image)
+    .sort((a, b) => (a.record.publishedSettings?.order ?? a.record.order ?? 0) - (b.record.publishedSettings?.order ?? b.record.order ?? 0));
+  return records.map(({ record, draft }, index) => ({ ...caseFields(record, draft, lang), no: String(index + 1).padStart(2, '0') }));
+}
+
+function allCases(override = null) { return cases('zh', override); }
+
+module.exports = { content, qualifications, cases, allCases, normalize, languageComplete };

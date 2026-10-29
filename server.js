@@ -1,32 +1,12 @@
 const http=require('http'),fs=require('fs'),path=require('path'),crypto=require('crypto');
 const {render}=require('./views.cjs');
 const adminCore=require('./后台服务.cjs');
+const frontData=require('./前台数据.cjs');
 const root=__dirname,publicRoot=path.join(root,'public'),dataRoot=path.resolve(process.env.MVP_DATA_DIR||path.join(root,'data')),leadFile=path.join(dataRoot,'mvp-leads.json');
 const read=(f,fallback)=>fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):fallback;
 function write(f,v){const temp=f+'.tmp';fs.writeFileSync(temp,JSON.stringify(v,null,2));fs.renameSync(temp,f)}
-function content(){
- const db={courses:[],teachers:[],qualifications:[]};
- const media=f=>f?.id?`/admin-media/${f.id}`:'';
- const files=v=>(v.attachments||[]).map(f=>({name:f.displayName||f.name,url:media(f)}));
- const videos=v=>(v.clips||[]).filter(c=>c.video?.id).map(c=>({name:c.title||c.video.name,title:c.title||c.video.name,url:media(c.video),poster:media(c.cover)||media(v.image)}));
- const lines=value=>Array.isArray(value)?value:String(value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- // 每种语言各自的全部字段；英文、越南文页面只显示该语言填写的内容，不再用中文补空
- const fields=v=>({name:v.name||'',intro:v.description||'',category:v.category||'',cover:media(v.image),photo:media(v.image),issuer:v.org||'',institution:v.org||'',role:v.role||'',validUntil:v.validity||'',number:v.number||'',responsibility:v.responsibility||'',results:v.results||'',audience:v.audience||'',outline:lines(v.outline),goals:lines(v.goals),education:v.education||'',background:v.background||'',researchAreas:lines(v.research),aiTeachingExperience:v.experience||'',materials:files(v),videos:videos(v)});
- for(const record of adminCore.list(true).filter(r=>['courses','experts','qualifications'].includes(r.type))){
-  const translations={},languages={};
-  for(const l of ['zh','en','vi']){
-   const v=record.published[l]||{},present=!!(v.name||v.description||v.image||v.attachments?.length);
-   languages[l]=present;
-   if(l!=='zh'&&present)translations[l]=fields(v);
-  }
-  // 排序与关联专家取发布时的快照，未发布的草稿修改不影响前台
-  const settings=record.publishedSettings||record;
-  const item={id:record.id,order:settings.order,published:true,translations,languages,teacherId:settings.experts?.[0]||'',teacherIds:settings.experts||[],...fields(record.published.zh||{})};
-  const key=record.type==='experts'?'teachers':record.type;
-  db[key].push(item);
- }
- return db
-}
+// 前台取数统一走 前台数据.cjs（方案第 5 步）
+function content(){return frontData.content()}
 function staticBackLink(pathname){const parts=pathname.split('/').filter(Boolean),language=parts[0];if(parts.length<2||!['zh','en','vi'].includes(language))return '';const homeSection={training:'services',agents:'services',implementation:'services',cases:'scenarios'}[parts[1]],href=parts.length===2?(homeSection?`/${language}/#${homeSection}`:`/${language}/`):`/${parts.slice(0,-1).join('/')}/`,label={zh:'返回上一页',en:'Back',vi:'Quay lại'}[language];return `<a class="v2-back" href="${href}" onclick="if(document.referrer.indexOf(location.origin+'/')===0&&history.length>1){event.preventDefault();history.back()}"><span aria-hidden="true">←</span> ${label}</a>`}
 function addStaticBackLink(html,pathname){const link=staticBackLink(pathname);if(!link)return html;const breadcrumbs=/(<nav class="breadcrumbs"[^>]*>[\s\S]*?<\/nav>)/;return breadcrumbs.test(html)?html.replace(breadcrumbs,`<div class="v2-crumbs">${link}$1</div>`):html.replace('<main id="main">',`<main id="main"><div class="container v2-crumbs is-solo">${link}</div>`)}
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.pdf':'application/pdf','.mp4':'video/mp4','.webm':'video/webm','.ogg':'video/ogg','.txt':'text/plain; charset=utf-8','.doc':'application/msword','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','.ppt':'application/vnd.ms-powerpoint','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation','.zip':'application/zip','.woff2':'font/woff2'};

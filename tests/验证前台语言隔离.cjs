@@ -21,5 +21,7 @@ const db3={courses:[trilingual],teachers:[teacher],qualifications:[]};
 const strip=html=>html.replace(/<script[\s\S]*?<\/script>/g,'').replace(/<a[^>]*\blang="zh[^"]*"[^>]*>[\s\S]*?<\/a>/g,'');
 for(const language of ['en','vi'])for(const [type,id] of [['courses',null],['courses','tri-test'],['teachers',null],['teachers','tri-teacher']]){const page=strip(render(language,type,id,db3,publicRoot).body);assert.doesNotMatch(page,/[一-鿿　-〿！-～]/,`${language} ${type} ${id||'列表'} 不应出现中文文字或标点`)}
 const viCourse=render('vi','courses','tri-test',db3,publicRoot).body;assert.match(viCourse,/Đối tượng: Leads/);assert.match(viCourse,/Giảng viên: /);assert.match(viCourse,/aria-label="Đường dẫn điều hướng"><a href="\/vi\/">Trang chủ/);assert.doesNotMatch(viCourse,/Audience|Instructor|>Home</);
-assert.match(render('en','courses','tri-test',db3,publicRoot).body,/Audience: Leads/);assert.match(render('en','teachers','tri-teacher',db3,publicRoot).body,/Agents, Knowledge/);assert.match(render('zh','teachers','tri-teacher',db3,publicRoot).body,/Agents、Knowledge/);
+assert.match(render('en','courses','tri-test',db3,publicRoot).body,/Audience: Leads/);
+// 方案第 5 步：旧的所属机构、学历、专业背景、研究方向不再显示（去掉 teacherBackground）
+assert.doesNotMatch(render('en','teachers','tri-teacher',db3,publicRoot).body,/Agents, Knowledge|Agents、Knowledge/, '旧的研究方向不应再显示');
 console.log('英文、越南语页面固定文字与标点：通过');

@@ -1,5 +1,6 @@
 // 内容栏位表（《后台改造方案》3.1、第 4 节）：四类内容的全部项目、字数算法、
 // “某种语言算不算填完”“能不能发布”的判断。后台服务、后台界面、前台取数都用这一份。
+const fs = require('fs'), path = require('path');
 const LANGS = ['zh', 'vi', 'en'];
 
 // 字数算法（B3）：汉字和全角标点算 1，字母、数字、半角标点、空格算 ½；
@@ -98,6 +99,29 @@ const DEFAULT_OPTIONS = {
     { id: 'fact-base', zh: '基础', vi: 'Yêu cầu 〔待确认〕', en: 'Prerequisites 〔待确认〕', disabled: false },
   ],
 };
+
+// 网页宋体字表（D12）：发布时检查姓名/课程名/案例标题/资质名称里有没有字表外的字
+let FONT_CHARS = null;
+function fontCharSet() {
+  if (FONT_CHARS) return FONT_CHARS;
+  try { FONT_CHARS = new Set(fs.readFileSync(path.join(__dirname, 'public', 'fonts', '宋体字表.txt'), 'utf8')); }
+  catch { FONT_CHARS = new Set(); }
+  return FONT_CHARS;
+}
+function fontWarnings(type, draft) {
+  const chars = fontCharSet();
+  if (!chars.size) return [];
+  const label = { experts: '姓名', courses: '课程名', cases: '案例标题', qualifications: '名称' }[type] || '名称';
+  const out = [];
+  for (const lang of LANGS) {
+    for (const ch of String(draft?.[lang]?.name || '')) {
+      if (/\s/.test(ch) || chars.has(ch)) continue;
+      const text = `${label}（${langName(lang)}）“${ch}”不在网页宋体字表里，会用电脑字体显示`;
+      if (!out.includes(text)) out.push(text);
+    }
+  }
+  return out.slice(0, 8);
+}
 
 const fields = type => [...(TYPES[type]?.shared || []), ...(TYPES[type]?.lang || [])];
 const field = (type, key) => fields(type).find(f => f.key === key);
@@ -229,7 +253,7 @@ function publishCheck(record, records = []) {
     const big = records.filter(r => r.type === 'experts' && r.id !== record.id && r.status === 'published' && (r.published?.shared?.bigCard ?? r.draft?.shared?.bigCard));
     if (big.length >= 4) errors.push(`大卡已有 4 位（${big.map(r => r.published?.zh?.name || r.draft?.zh?.name || r.id).join('、')}），要先取消一位`);
   }
-  return { ok: errors.length === 0, errors, languages };
+  return { ok: errors.length === 0, errors, languages, warnings: fontWarnings(type, draft) };
 }
 const langName = l => ({ zh: '中文', vi: '越南语', en: '英文' }[l] || l);
 

@@ -1,5 +1,4 @@
 const {esc,crumbs,photoBox}=require('./v2-parts.cjs');
-const extra=require('./course-extra.cjs');
 const labels={
  zh:{intro:'课程介绍',goals:'学完你能做到',outline:'课程大纲',preview:'学习预览',enquire:'咨询报名',action:'咨询课程安排',clip:'课程片段',enquireText:'围绕课程内容，交流适合您的学习与培训安排。',facts:'课程信息'},
  en:{intro:'Introduction',goals:'What you\'ll be able to do',outline:'Course outline',preview:'Learning preview',enquire:'Enquire & enrol',action:'Discuss course arrangements',clip:'Course clip',enquireText:'Discuss learning and training arrangements for your team.',facts:'Course facts'},
@@ -18,17 +17,17 @@ function duration(v){let n=Number(v);if(!Number.isFinite(n)||n<=0)return '--:--'
 // 课程详情（2026-10-28 按豆包 demo 的节奏重排）：概览（深色，含课程信息）→ 课程介绍、课程大纲两张白卡 → 学完你能做到 → 学习预览 → 咨询报名（深色，讲师卡 + 咨询）
 function courseDetail(c,l,teachers){
  const d=labels[l],w=words[l],base=`/${l}/`,num=n=>String(n).padStart(2,'0');
- const more=extra[c.id]?.[l]||{};
+ // 课程信息、学完你能做到、片段标题和时长都来自后台发布快照（第 5 步）
  // 授课讲师按后台勾选的顺序；只显示这种语言里有内容的讲师
  const ids=c.teacherIds?.length?c.teacherIds:[c.teacherId].filter(Boolean);
  const team=ids.map(id=>teachers.find(p=>p.id===id)).filter(Boolean);
  if(!team.length&&c.teacher){const named=teachers.find(p=>p.name===c.teacher);if(named)team.push(named)}
  const outline=c.outline||[],videos=c.videos||[];
- const outcomes=more.outcomes||(c.goals||[]).map(x=>['',x]);
+ const outcomes=c.outcomes||[],factsList=c.facts||[];
  const who=team.length?team.map(p=>`<a href="${base}teachers/${encodeURIComponent(p.id)}/">${esc(p.name)}</a>`).join(w.separator):esc(c.teacher||'—');
  const teach=team.length?`<div class="v2-teach">${team.map(p=>p.photo?`<img src="${esc(p.photo)}" alt="">`:'').join('')}<span>${w.instructor}${w.colon}${who}${team.length===1&&team[0].identity?`<small>${esc(team[0].identity)}</small>`:''}</span></div>`:'';
- const facts=more.facts?.length?`<dl class="v2-ov-facts" aria-label="${d.facts}">${more.facts.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:'';
- const summary=more.summary||firstSentence(c.intro);
+ const facts=factsList.length?`<dl class="v2-ov-facts" aria-label="${d.facts}">${factsList.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`:'';
+ const summary=String(c.goals||'').trim()||firstSentence(c.intro);
  const overview=`<section class="v2-ov v2-dark" id="course-overview" data-course-section><div class="container">${crumbs(l,[[w.courses,`${base}courses/`],[c.name]],`${base}courses/`)}<div class="v2-ov-grid"><div class="v2-ov-cover"><img src="${esc(c.cover||'/assets/course-workshop.png')}" alt="${esc(c.name)}">${videos.length?`<a class="v2-play" href="#course-preview" aria-label="${d.preview}"></a>`:''}</div><div class="v2-ov-copy">${c.category?`<p class="eyebrow">${esc(c.category)}</p>`:''}<h1>${esc(c.name)}</h1>${summary?`<p class="v2-ov-sum">${esc(summary)}</p>`:''}${facts}${teach}<div class="v2-ov-acts"><a class="button primary" href="#course-enquiry">${d.enquire} →</a>${videos.length?`<a class="button ghost" href="#course-preview">${d.preview} ↓</a>`:''}</div></div></div></div></section>`;
  // 课程介绍、课程大纲：两张白卡并排；适合人群、授课讲师放在介绍下面
  let n=0;

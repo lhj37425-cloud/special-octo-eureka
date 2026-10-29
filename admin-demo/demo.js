@@ -202,7 +202,8 @@ async function publish(record,fromEditor=false){
   busy=false;renderAdmin();
   const names={zh:'中文',vi:'越南语',en:'英文'};
   const langs=(schema?.LANGS||['zh','vi','en']).map(l=>{const x=published.report?.languages?.[l];return `${names[l]}：${x?.show?'会显示':'不会显示'+(x?.missing?.length?`，缺 ${x.missing.join('、')}`:'')}`});
-  await ask('已发布','前台刷新后即可看到这一版。',[['ok','知道了','primary']],langs);
+  const warnings=published.report?.warnings||[];
+  await ask(warnings.length?'已发布，但有字体提醒':'已发布',warnings.length?'下面这些字不在网页宋体字表里，会用电脑字体显示：':'前台刷新后即可看到这一版。',[['ok','知道了','primary']],[...langs,...warnings]);
  }catch(error){
   busy=false;
   const lines=String(error.message||'发布失败。').split('\n').map(x=>x.replace(/^·\s*/,'').trim()).filter(Boolean);
