@@ -30,6 +30,8 @@ export async function logout(){await request('/api/logout',{method:'POST'});csrf
 export async function upload(file,onProgress){return uploadMedia(file,{onProgress})}
 export async function getSchema(){return (await request('/api/schema')).schema}
 export async function getOptions(){return (await request('/api/options')).options}
+export async function saveOptions(input){return (await request('/api/options',{method:'POST',body:JSON.stringify(input)})).options}
+export async function setOrder(type,ids){return (await request('/api/order',{method:'POST',body:JSON.stringify({type,ids})})).records}
 export async function publishRecord(id){return (await request(`/api/records/${encodeURIComponent(id)}/publish`,{method:'POST'})).record}
 export async function offlineRecord(id){return (await request(`/api/records/${encodeURIComponent(id)}/offline`,{method:'POST'})).record}
 export async function writeState(state){const next=new Set(state.records.map(r=>r.id).filter(Boolean));for(const id of known)if(!next.has(id))await request(`/api/records/${encodeURIComponent(id)}`,{method:'DELETE'});for(const local of state.records){const action=local._action;if(!action&&serverCopies.get(local.id)===sig(local))continue;const saved=(await request('/api/records',{method:'POST',body:JSON.stringify(local)})).record;if(action==='publish')await request(`/api/records/${encodeURIComponent(saved.id)}/publish`,{method:'POST'});else if(action==='offline')await request(`/api/records/${encodeURIComponent(saved.id)}/offline`,{method:'POST'});}state.records=(await readState()).records;return state}

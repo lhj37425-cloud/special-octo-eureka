@@ -2,13 +2,15 @@
 // 共用区只填一次；文字分中文、越南语、英文；字数、三语检查、列表增删排序都在这里。
 import { prepareAndUploadImage, prepareVideo, captureFrame, prepareCoverImage, uploadMedia, validateMediaFile } from './media.js';
 
-export const SCHEMA_TYPES = ['experts', 'courses'];
+export const SCHEMA_TYPES = ['experts', 'courses', 'cases', 'qualifications'];
 export const LANG_NAME = { zh: '中文', vi: '越南语', en: '英文' };
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const btn = (text, action, css = '', extra = '') => `<button type="button" class="${css}" data-editor-action="${action}" ${extra}>${text}</button>`;
 const asList = value => Array.isArray(value) ? value.map(x => String(x ?? '')) : String(value || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-const hasValue = value => Array.isArray(value) ? value.length > 0 : String(value ?? '').trim().length > 0;
+const hasValue = value => Array.isArray(value)
+  ? value.some(x => x && typeof x === 'object' ? Object.values(x).some(y => String(y ?? '').trim() !== '') : String(x ?? '').trim() !== '')
+  : String(value ?? '').trim().length > 0;
 
 // 字数（B3）：汉字和全角标点算 1，字母/数字/半角标点/空格算 ½；越南语组合声调不另算，显示向上取整
 export function widthOf(text) {
@@ -173,8 +175,15 @@ function langCheck(record, lang, schema) {
     });
     if (f.max && !['list', 'outcomes'].includes(f.type) && count(v[f.key]) > f.max) over.push(`${f.label} ${count(v[f.key])} / ${f.max}`);
   }
-  return { missing, over, complete: missing.length === 0 };
+  const started = T.lang.some(f => {
+    const x = v[f.key];
+    if (f.type === 'outcomes') return (Array.isArray(x) ? x : []).some(item => String(item?.title ?? '').trim() || String(item?.text ?? '').trim());
+    if (Array.isArray(x)) return x.some(y => y && typeof y === 'object' ? Object.values(y).some(z => String(z ?? '').trim() !== '') : String(y ?? '').trim() !== '');
+    return String(x ?? '').trim() !== '';
+  });
+  return { missing, over, complete: missing.length === 0, started };
 }
+export const languageStatus = (record, lang, schema) => langCheck(record, lang, schema);
 
 function optionName(option, lang) {
   if (!option) return '';
@@ -203,10 +212,10 @@ function renderImageField(record, field, { preset, round = false, wide = false, 
   const image = record.draft.shared[field];
   return `<div class="efield"><label>${label}${required ? '<span class="req">*</span>' : ''}</label>
     <div class="se-media">
-      ${image ? `<img class="${round ? 'is-round' : wide ? 'is-wide' : ''}" src="${ui.mediaURL(image)}" alt="${esc(image.name || label)}">` : `<div class="se-placeholder ${wide ? 'is-wide' : ''}">${ui.icon('upload')}<span>${round ? '正方形照片' : wide ? '16:9 图片' : '图片'}</span></div>`}
+      ${image ? `<img class="${round ? 'is-round' : wide ? 'is-wide' : ''}" src="${ui.mediaURL(image)}" alt="${esc(image.name || label)}">` : `<div class="se-placeholder ${wide ? 'is-wide' : ''}">${ui.icon('upload')}<span>${round ? '正方形照片' : preset === 'qualification' ? '完整图片' : preset === 'case' ? '16:10 图片' : wide ? '16:9 图片' : '图片'}</span></div>`}
       <div class="se-media-actions">
         <div class="se-actions">${btn(image ? '替换图片' : '上传图片', `pick:${field}`)}${image ? btn('移除', `remove-shared:${field}`, 'text-btn danger-link') : ''}</div>
-        <div class="small muted">JPG / PNG / WebP · 原图不超过 20MB${round ? ' · 上传后裁成正方形' : wide ? ' · 上传后按比例裁剪' : ''}</div>
+        <div class="small muted">JPG / PNG / WebP · 原图不超过 20MB${round ? ' · 上传后裁成正方形' : preset === 'qualification' ? ' · 不裁剪，完整显示，长边压到 2400 以内' : preset === 'case' ? ' · 上传后裁成 16:10' : ' · 上传后按比例裁剪'}</div>
       </div>
     </div>
     <input type="file" hidden data-editor-file="${field}" accept=".jpg,.jpeg,.png,.webp">
@@ -286,7 +295,7 @@ function renderSharedCourse(record, options, records, ui) {
     <div class="se-grid">
       ${renderImageField(record, 'image', { preset: 'course', wide: true, label: '封面', required: true, ui })}
       <div class="efield"><label>分类<span class="req">*</span></label>
-        <select data-shared-select="category"><option value="">请选择分类</option>${categories.map(o => `<option value="${esc(o.id)}" ${shared.category === o.id ? 'selected' : ''} ${o.disabled && shared.category !== o.id ? 'disabled' : ''}>${esc(o.zh)}${o.disabled ? '（已停用）' : ''}</option>`).join('')}</select>
+        <select data-shared-select="category"><option value="">请选择分类</option>${categories.filter(o => !o.disabled || shared.category === o.id).map(o => `<option value="${esc(o.id)}" ${shared.category === o.id ? 'selected' : ''}>${esc(o.zh)}${o.disabled ? '（已停用）' : ''}</option>`).join('')}</select>
         <p class="used">卡片角标、列表页筛选。新分类在“选项设置”里加。</p>
         ${categories.length ? '' : '<p class="used" style="color:#b45309">还没有课程分类，请先到“选项设置”添加。</p>'}
       </div>
@@ -298,6 +307,22 @@ function renderSharedCourse(record, options, records, ui) {
     </div>
     ${renderClips(record, ui)}
     ${renderAttachments(record, ui)}
+  </section>`;
+}
+
+function renderSharedMedia(record, records, ui) {
+  const isCase = record.type === 'cases';
+  const featured = !!record.featured;
+  const canFeature = ui.canPublish() && record.status === 'published';
+  const featuredCount = records.filter(r => r.type === record.type && r.featured).length;
+  return `<section class="se-block"><h3>① 共用（三种语言一样）</h3><p class="se-sub">${isCase ? '案例图片裁成 16:10，三种语言共用。' : '资质图片完整显示、不裁剪，长边压到 2400 以内。'}</p>
+    <div class="se-grid">
+      ${renderImageField(record, 'image', { preset: isCase ? 'case' : 'qualification', wide: true, label: isCase ? '案例图片' : '资质图片', required: true, ui })}
+      <div class="efield"><label>首页展示</label>
+        <label class="selection"><input type="checkbox" data-featured ${featured ? 'checked' : ''} ${canFeature ? '' : 'disabled'}> 在首页${isCase ? '业务场景' : '资质区'}展示</label>
+        <p class="used">最多 3 个；只有已发布的才能勾选，需要发布权限。${canFeature ? `当前已勾选 ${featuredCount} 个。` : record.status === 'published' ? '你的账号没有发布权限，不能修改首页展示。' : '发布后才能勾选。'}</p>
+      </div>
+    </div>
   </section>`;
 }
 
@@ -377,6 +402,8 @@ function renderPreview(record, tab, records, ui) {
     const big = !!shared.bigCard, name = v.name || '', surname = name ? [...name][0] : '姓';
     return `<div class="editor-card-preview ${big ? 'is-big' : ''}"><div class="top">${shared.image ? `<img src="${ui.mediaURL(shared.image)}" alt="">` : `<div class="surname">${esc(surname)}</div>`}<div><div class="eyebrow">EXPERT PROFILE</div><h4>${esc(name || '姓名')}</h4><div class="tag">${esc(v.identity || '身份')}</div></div></div><p>${esc(v.tagline || '一句话介绍')}</p>${asList(v.highlights).length ? `<ul>${asList(v.highlights).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div>`;
   }
+  if (record.type === 'cases') return `<div class="editor-card-preview"><div class="top">${shared.image ? `<img src="${ui.mediaURL(shared.image)}" alt="" style="width:96px;height:60px;border-radius:8px">` : '<div class="surname" style="border-radius:8px">案</div>'}<div><div class="eyebrow">USE CASE</div><h4>${esc(v.name || '案例标题')}</h4><div class="tag">${esc(v.industry || '行业')}</div></div></div><p>${esc(v.description || '简介')}</p></div>`;
+  if (record.type === 'qualifications') return `<div class="editor-card-preview"><div class="top">${shared.image ? `<img src="${ui.mediaURL(shared.image)}" alt="" style="width:96px;height:60px;border-radius:8px">` : '<div class="surname" style="border-radius:8px">资</div>'}<div><div class="eyebrow">CERTIFICATE</div><h4>${esc(v.name || '名称')}</h4></div></div><p>${esc(v.description || '简短说明')}</p></div>`;
   return `<div class="editor-card-preview"><div class="top">${shared.image ? `<img src="${ui.mediaURL(shared.image)}" alt="" style="width:88px;height:50px;border-radius:8px">` : '<div class="surname" style="border-radius:8px">课</div>'}<div><div class="eyebrow">AI LEARNING</div><h4>${esc(v.name || '课程名')}</h4></div></div><p>${esc(v.goals || '一句话目标')}</p><p class="small muted">${esc(v.audience || '适合人群')}</p></div>`;
 }
 
@@ -408,7 +435,7 @@ export function renderEditorPage(ctx) {
   return `<a class="back" href="#" data-action="back">${ui.icon('back')}返回${ui.types[record.type]}</a>
   <div class="page-heading"><div><div class="eyebrow">EDIT CONTENT</div><h1>${esc(ui.label(record))}</h1><p>${esc(record.id)} &nbsp;·&nbsp; <span class="badge ${record.status === 'published' ? 'good' : 'warn'}">${stateLabel}</span> ${original && ui.changed(original) ? '<span class="status-note">有未发布修改</span>' : ''}</p></div>${ui.btn(`${ui.icon('eye')}预览内容`, 'preview-edit')}</div>
   <div class="edit-layout"><section class="panel"><div class="tabs">${tabs}</div><div class="panel-body">
-    ${record.type === 'experts' ? renderSharedExpert(record, records, ui) : renderSharedCourse(record, options, records, ui)}
+    ${record.type === 'experts' ? renderSharedExpert(record, records, ui) : record.type === 'courses' ? renderSharedCourse(record, options, records, ui) : renderSharedMedia(record, records, ui)}
     ${renderLangSection(record, tab, schema, options, ui)}
   </div></section>
   <aside class="edit-aside">
@@ -463,6 +490,7 @@ export function bindEditor(ctx) {
   for (const el of document.querySelectorAll('[data-outcome-title]')) el.oninput = () => { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] || {}; item.title = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] = item; refresh(); };
   for (const el of document.querySelectorAll('[data-outcome-text]')) el.oninput = () => { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeText)] || {}; item.text = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeText)] = item; refresh(); };
   for (const el of document.querySelectorAll('[data-shared-check]')) el.onchange = () => { record.draft.shared[el.dataset.sharedCheck] = el.checked; ctx.rerender(); };
+  for (const el of document.querySelectorAll('[data-featured]')) el.onchange = () => { record.featured = el.checked; if (ctx.onChange) ctx.onChange(); };
   for (const el of document.querySelectorAll('[data-shared-select]')) el.onchange = () => { record.draft.shared[el.dataset.sharedSelect] = el.value; refresh(); };
   for (const el of document.querySelectorAll('[data-fact-check]')) el.onchange = () => {
     let ids = [...(record.draft.shared.factLabels || [])], id = el.dataset.factCheck;
@@ -510,7 +538,8 @@ export function bindEditor(ctx) {
     uploading = true;
     try {
       if (field === 'image') {
-        const prepared = await prepareAndUploadImage(file, { preset: record.type === 'experts' ? 'expert' : 'course', onProgress: p => setStatus(`正在上传图片 ${p}%`) });
+        const preset = { experts: 'expert', courses: 'course', cases: 'case', qualifications: 'qualification' }[record.type] || 'course';
+        const prepared = await prepareAndUploadImage(file, { preset, onProgress: p => setStatus(`正在上传图片 ${p}%`) });
         if (!prepared) return;
         record.draft.shared.image = prepared.saved;
         if (prepared.warn) ctx.toast(prepared.warn);

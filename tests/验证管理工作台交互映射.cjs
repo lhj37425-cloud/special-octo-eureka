@@ -22,6 +22,10 @@ assert.match(editorCode,/export function renderEditorPage/);
 assert.match(editorCode,/export function ensureDraft/);
 assert.match(editorCode,/data-editor-action/);
 assert.ok(server.includes("'/editor.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','editor.js'))]"));
+assert.match(workbench,/function renderOptions\(/);
+assert.match(workbench,/async function orderAction\(/);
+assert.match(workbench,/act\.startsWith\('option-'\)/);
+assert.match(workbench,/act\.startsWith\('order-'\)/);
 
 // 每一类可操作按钮都必须有明确处理器，且落到真实保存或上传。
 for(const operation of [
