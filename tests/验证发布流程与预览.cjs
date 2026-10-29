@@ -13,6 +13,7 @@ const imageA=core.file('专家照片.png',png,'image/png'),imageD=core.file('独
 const expert=core.saveRecord({type:'experts',draft:{shared:{image:imageA},zh:{name:'发布验收专家',identity:'旧身份',tagline:'旧一句话'},vi:{name:'Chuyên gia',identity:'Cố vấn',tagline:'Một câu'}}},owner);core.publish(expert.id,owner);
 const course=core.saveRecord({type:'courses',experts:[expert.id],draft:{shared:{category:'cat-aigc',image:imageA},zh:{name:'发布验收课程',goals:'目标',description:'介绍',audience:'零基础',outline:['第一章']}}},owner);core.publish(course.id,owner);
 const draftOnly=core.saveRecord({type:'experts',draft:{shared:{image:imageD},zh:{name:'独有文件专家',identity:'顾问',tagline:'一句话'}}},owner);
+const qual=core.saveRecord({type:'qualifications',draft:{shared:{image:imageA},zh:{name:'预览资质',description:'资质说明'}}},owner);core.publish(qual.id,owner);
 
 const frontPort=7200+Math.floor(Math.random()*150),adminPort=7400+Math.floor(Math.random()*150);
 const front='http://127.0.0.1:'+frontPort,admin='http://127.0.0.1:'+adminPort;
@@ -42,6 +43,9 @@ let browser;
  assert.match(previewDraft,/\/preview-media\//,'预览图片走后台受保护地址');
  assert.match(previewDraft,/\/preview\/vi\/teachers\//);assert.match(previewDraft,/\/preview\/en\/teachers\//,'预览可切三种语言（C8）');
  await page.screenshot({path:path.join(shots,'01-预览草稿.png'),fullPage:true});
+ await page.goto(front+'/preview/zh/');assert.match(await page.content(),/预览 · 未发布/,'首页也能预览');
+ await page.goto(front+`/preview/zh/qualifications/${qual.id}/`);const qualPreview=await page.content();
+ assert.match(qualPreview,/预览资质/);assert.match(qualPreview,/预览 · 未发布/,'资质预览走首页模板');
 
  // —— 发布确认：写清这次改了身份（中文） ——
  await page.goto(admin);await page.click('[data-action="nav:experts"]');await page.locator('tr',{hasText:'发布验收专家'}).getByRole('button',{name:'编辑'}).click();await page.waitForTimeout(300);
