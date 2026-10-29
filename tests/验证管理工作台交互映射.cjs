@@ -34,14 +34,18 @@ for(const operation of [
   "act==='publish-edit'", "act==='publish'", "act==='offline'",
   "act==='delete'", "act==='upload'", "act==='remove-media'",
   "act==='remove-file'", "act==='clip-add'", "act==='clip-delete'",
-  "act==='clip-up'||act==='clip-down'", "act==='preview'||act==='preview-edit'"
+  "act==='clip-up'||act==='clip-down'", "act==='preview'", "act==='preview-edit'",
+  "act==='revert-edit'", "act==='offline-edit'", "act==='delete-edit'"
 ]) assert.match(workbench,new RegExp(operation.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 
 assert.doesNotMatch(workbench,/查看前台|window\.open\(PUBLIC/);
 assert.match(workbench,/await logoutRequest\(\)/);
 assert.match(workbench,/await saveEditing\(\)/);
 assert.match(workbench,/publishRecord\(record\.id\)/);
-assert.match(workbench,/record\._action='offline'/);
+assert.match(workbench,/async function offlineById\(/);
+assert.match(workbench,/await offlineRecord\(/);
+assert.match(workbench,/await removeRecord\(/);
+assert.match(workbench,/await revertRecord\(/);
 assert.match(workbench,/if\(!await persist\(\)\)/);
 assert.match(workbench,/pickFile\(arg,arg2===undefined\?null:\+arg2\)/);
 assert.match(workbench,/await uploadRequest\(file\)/);

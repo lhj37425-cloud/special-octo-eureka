@@ -445,7 +445,7 @@ export function renderEditorPage(ctx) {
     ${renderRelation(record, records, ui)}
     <section class="panel"><div class="aside-note">${ui.icon('info')}<br><strong style="color:var(--ink)">保存 ≠ 发布</strong><br>草稿只在后台可见。发布后才更新前台；没填完的语言发布后不显示，不会强制补齐。<br><br>共用项（照片、封面、分类、专家、片段、附件）只填一次，三种语言共用。</div></section>
   </aside></div>
-  <div class="sticky-bottom"><div class="small muted" id="save-status">${dirty ? '● 有未保存的修改' : ctx.saved ? '所有更改已保存到本地后台' : '新内容，填写后请保存草稿'}</div><div class="actions">${ui.btn('保存草稿', 'save')}${ui.btn('预览', 'preview-edit')}${ui.canPublish() ? ui.btn(`${ui.icon('check')}发布内容`, 'publish-edit', 'primary') : '<span class="small muted">你的账号只能保存草稿，发布请联系主管理员</span>'}</div></div>`;
+  <div class="sticky-bottom"><div class="small muted" id="save-status">${dirty ? '● 有未保存的修改' : ctx.saved ? '所有更改已保存到本地后台' : '新内容，填写后请保存草稿'}</div><div class="actions">${ui.btn('保存草稿', 'save')}${ui.btn('预览', 'preview-edit')}${ui.canPublish() ? ui.btn(`${ui.icon('check')}发布内容`, 'publish-edit', 'primary') : '<span class="small muted">你的账号只能保存草稿，发布请联系主管理员</span>'}${ui.canPublish() && record.published && ui.changed(record) ? ui.btn('撤销修改', 'revert-edit', 'text-btn') : ''}${ui.canPublish() && record.status === 'published' ? ui.btn('下架', 'offline-edit', 'text-btn danger-link') : ''}${ui.canPublish() && record.status !== 'published' ? ui.btn('删除', 'delete-edit', 'text-btn danger-link') : ''}</div></div>`;
 }
 
 function refreshCounters(record, tab, schema) {

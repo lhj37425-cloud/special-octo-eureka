@@ -131,15 +131,21 @@ function caseFields(record, draft, lang) {
   };
 }
 
-// 预览用：把某一条的发布快照换成草稿；其余内容仍用发布版（第 6 步用）
+// 预览用：把某一条的发布快照换成草稿；其余内容仍用发布版（第 6 步用）。
+// 还没发布过的草稿也要能出现在预览列表里。
 function readRecords(override = null) {
   const records = core.list(true);
   if (!override || !override.id || !override.draft) return records;
-  return records.map(record => record.id === override.id ? {
-    ...record,
+  const all = core.list(), source = all.find(record => record.id === override.id);
+  if (!source) return records;
+  const merged = {
+    ...source,
     published: override.draft,
-    publishedSettings: { category: record.category, order: record.order, experts: record.experts },
-  } : record);
+    publishedSettings: { category: source.category, order: source.order, experts: source.experts },
+  };
+  const index = records.findIndex(record => record.id === override.id);
+  if (index >= 0) records[index] = merged; else records.push(merged);
+  return records;
 }
 
 function content(override = null) {

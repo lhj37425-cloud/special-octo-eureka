@@ -1,4 +1,4 @@
-import {languages,types,emptyLang,clone,entered,missing,blocking,makeRecord,readState,writeState,resetState,login as loginRequest,logout as logoutRequest,upload as uploadRequest,setup as setupRequest,status as statusRequest,me as meRequest,changePassword as changePasswordRequest,listUsers as listUsersRequest,createUser as createUserRequest,updateUser as updateUserRequest,resetUserPassword as resetUserPasswordRequest,removeUser as removeUserRequest,listLeads as listLeadsRequest,updateLead as updateLeadRequest,removeLead as removeLeadRequest,getSchema,getOptions,saveOptions,setOrder,publishRecord} from './store.js';
+import {languages,types,emptyLang,clone,entered,missing,blocking,makeRecord,readState,writeState,resetState,login as loginRequest,logout as logoutRequest,upload as uploadRequest,setup as setupRequest,status as statusRequest,me as meRequest,changePassword as changePasswordRequest,listUsers as listUsersRequest,createUser as createUserRequest,updateUser as updateUserRequest,resetUserPassword as resetUserPasswordRequest,removeUser as removeUserRequest,listLeads as listLeadsRequest,updateLead as updateLeadRequest,removeLead as removeLeadRequest,getSchema,getOptions,saveOptions,setOrder,publishRecord,revertRecord,removeRecord,offlineRecord} from './store.js';
 import {SCHEMA_TYPES,ensureDraft,renderEditorPage,bindEditor,languageStatus} from './editor.js';
 const app=document.querySelector('#app'), modal=document.querySelector('#modal');
 const paths={grid:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',award:'M12 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12 M8 14l-2 7 6-3 6 3-2-7',users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M17 4a4 4 0 0 1 0 7 M22 21v-2a4 4 0 0 0-3-3.8',book:'M4 3h6a3 3 0 0 1 3 3v15a4 4 0 0 0-4-2H3V3z M13 6a3 3 0 0 1 3-3h6v16h-5a4 4 0 0 0-4 2',arrow:'M5 12h14 M13 6l6 6-6 6',back:'M19 12H5 M11 6l-6 6 6 6',external:'M14 3h7v7 M21 3l-9 9 M10 3H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-6',plus:'M12 5v14 M5 12h14',search:'M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16 M17 17l5 5',upload:'M12 16V3 M7 8l5-5 5 5 M3 15v5a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-5',check:'M4 12l5 5L20 6',info:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 11v6 M12 7h.01',exit:'M9 3H4v18h5 M10 12h11 M16 7l5 5-5 5',file:'M5 3h9l5 5v13H5z M14 3v6h5 M8 13h8 M8 17h6',eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7 M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v5l3 2',shield:'M12 2l9 4v6c0 6-9 10-9 10S3 18 3 12V6z M8 12l3 3 5-6',mail:'M3 5h18v14H3z M3 6l9 7 9-7',chevron:'M9 5l7 7-7 7',close:'M6 6l12 12 M18 6L6 18'};
@@ -190,9 +190,43 @@ function markDirty(){dirty=true;const status=document.querySelector('#save-statu
 function bindForm(){document.querySelectorAll('[data-key]').forEach(el=>el.oninput=()=>{editing.draft[tab][el.dataset.key]=el.value;markDirty()});document.querySelectorAll('[data-base]').forEach(el=>el.onchange=()=>{editing[el.dataset.base]=el.dataset.base==='order'?Number(el.value):el.value;markDirty()});document.querySelectorAll('[data-expert]').forEach(el=>el.onchange=()=>{editing.experts=Array.from(document.querySelectorAll('[data-expert]:checked'),x=>x.dataset.expert);markDirty()});document.querySelectorAll('[data-clip-title]').forEach(el=>el.oninput=()=>{editing.draft[tab].clips[+el.dataset.clipTitle].title=el.value;markDirty()});document.querySelectorAll('[data-attachment-name]').forEach(el=>el.oninput=()=>{editing.draft[tab].attachments[+el.dataset.attachmentName].displayName=el.value;markDirty()});const fail=document.querySelector('#simulate-fail');if(fail)fail.onchange=()=>simulateFail=fail.checked;document.querySelectorAll('.upload-box').forEach(el=>{el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}};el.ondragover=e=>{e.preventDefault();el.style.borderColor='#21785b'};el.ondragleave=()=>el.style.borderColor='';el.ondrop=async e=>{e.preventDefault();el.style.borderColor='';const [,slot,idx]=el.dataset.action.split(':');await uploadFiles(Array.from(e.dataTransfer.files),slot,idx===undefined?null:+idx)}});}
 async function saveEditing(quiet=false){if(busy)return false;busy=true;const old=clone(state),copy=clone(editing);copy.updated=new Date().toISOString();const idx=state.records.findIndex(r=>r.id===copy.id);if(idx<0)state.records.push(copy);else state.records[idx]=copy;if(!await persist()){state=old;busy=false;return false}editing=clone(state.records.find(r=>r.id===copy.id)||copy);dirty=false;busy=false;if(!quiet)toast('草稿已保存，前台内容没有变化');return true;}
 async function leaveEditor(){if(!dirty)return true;const answer=await ask('有尚未保存的修改','是否保存当前修改后继续？',[['cancel','取消'],['discard','放弃修改'],['save','保存并继续','primary']]);if(answer==='cancel')return false;if(answer==='save'&&!await saveEditing(true))return false;return true;}
+const LANG_LABEL={zh:'中文',vi:'越南语',en:'英文'};
+// 发布确认（4.8、G4、C7）：三语显示/缺项、这次改了哪些项、原来显示发布后会消失的用红字
+function changedFieldLabels(record){
+ if(!schema?.TYPES||!record.published)return [];
+ const type=record.type,T=schema.TYPES[type],draft=record.draft||{},pub=record.published||{},out=[];
+ const same=(a,b)=>JSON.stringify(a??null)===JSON.stringify(b??null);
+ for(const f of T.shared){if(!same(draft.shared?.[f.key],pub.shared?.[f.key]))out.push(f.label)}
+ for(const lang of schema.LANGS){const v=draft[lang]||{},p=pub[lang]||{};for(const f of T.lang)if(!same(v[f.key],p[f.key]))out.push(`${f.label}（${LANG_LABEL[lang]}）`)}
+ return [...new Set(out)].slice(0,20);
+}
+function confirmPublish(record){
+ if(!schema?.TYPES?.[record.type])return Promise.resolve('ok');
+ const lines=[],dangers=[];
+ for(const lang of schema.LANGS){
+  const st=languageStatus(record,lang,schema);
+  let text=`${LANG_LABEL[lang]}页面：${st.complete?'会显示':'不会显示'}`;
+  if(!st.complete&&st.missing.length)text+=`（缺 ${st.missing.join('、')}）`;
+  if(st.over.length)text+=`（超字数：${st.over.slice(0,2).join('；')}）`;
+  lines.push(text);
+  if(record.published){const old=languageStatus({...record,draft:record.published},lang,schema);if(old.complete&&!st.complete)dangers.push(`⚠ ${LANG_LABEL[lang]}页面原来显示，发布后会消失`)}
+ }
+ if(!record.published)lines.push('这是第一次发布。');
+ else {const changes=changedFieldLabels(record);lines.push(changes.length?`这次改了：${changes.join('、')}`:'这次没有改动。')}
+ return new Promise(resolve=>{
+  modal.style.width='';
+  modal.innerHTML=`<div class="dialog-body"><div class="eyebrow">PUBLISH</div><h2>发布「${esc(label(record))}」</h2><ul class="dialog-list">${lines.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${dangers.length?`<ul class="dialog-list">${dangers.map(x=>`<li style="color:#b91c1c;font-weight:600">${esc(x)}</li>`).join('')}</ul>`:''}</div><div class="dialog-actions"><button type="button" data-answer="cancel">取消</button><button type="button" data-answer="ok" class="primary">确认发布</button></div>`;
+  const finish=value=>{modal.oncancel=null;modal.close();resolve(value)};
+  modal.querySelector('[data-answer="cancel"]').onclick=()=>finish('cancel');
+  modal.querySelector('[data-answer="ok"]').onclick=()=>finish('ok');
+  modal.oncancel=event=>{event.preventDefault();finish('cancel')};
+  modal.showModal();
+ });
+}
 async function publish(record,fromEditor=false){
  if(busy)return;
  if(fromEditor||(editing&&editing.id===record.id)){if(!await saveEditing(true))return;record=editing}
+ const answer=await confirmPublish(record);if(answer!=='ok')return;
  busy=true;
  try{
   const published=await publishRecord(record.id);
@@ -209,6 +243,58 @@ async function publish(record,fromEditor=false){
   const lines=String(error.message||'发布失败。').split('\n').map(x=>x.replace(/^·\s*/,'').trim()).filter(Boolean);
   await ask('还不能发布','下面这些改好后才能发布：',[['ok','去修改','primary']],lines);
  }
+}
+// 真页面预览（G3）：前台端口跟着后台端口走；预览用后台草稿，其余用发布版
+function previewURL(record,lang){
+ const segment={experts:'teachers',courses:'courses',cases:'cases',qualifications:'qualifications'}[record.type]||'teachers';
+ const frontPort={4381:'4373',4181:'4173'}[location.port]||location.port;
+ return `http://${location.hostname}:${frontPort}/preview/${lang}/${segment}/${encodeURIComponent(record.id)}/`;
+}
+function openPreview(record,lang='zh'){if(!record?.id)return;window.open(previewURL(record,lang),'_blank','noopener');}
+async function previewEditing(){
+ if(!editing)return;
+ if(dirty||!state.records.some(r=>r.id===editing.id)){if(!await saveEditing(true))return;}
+ openPreview(editing,['zh','vi','en'].includes(tab)?tab:'zh');
+}
+// 下架、删除的影响清单（G6/G7）
+function recordFiles(record){
+ const map=new Map();const add=f=>{if(!f?.id)return;if(!map.has(f.id))map.set(f.id,f);if(f.source?.id&&!map.has(f.source.id))map.set(f.source.id,f.source)};
+ for(const version of [record.draft,record.published]){const s=version?.shared||{};add(s.image);for(const c of s.clips||[]){add(c.video);add(c.cover)}for(const a of s.attachments||[])add(a.file);for(const lang of ['zh','vi','en']){const v=version?.[lang]||{};add(v.image);for(const c of v.clips||[]){add(c.video);add(c.cover)}for(const a of v.attachments||[])add(a)}}return map;
+}
+function uniqueDeleteFiles(record){const files=recordFiles(record),other=new Set();for(const r of state.records){if(r.id===record.id)continue;for(const id of recordFiles(r).keys())other.add(id)}return [...files.values()].filter(f=>!other.has(f.id))}
+function formatSize(n){return n>=1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB'}
+function relatedCourses(record){if(record.type!=='experts')return[];return state.records.filter(r=>r.type==='courses'&&((r.experts||[]).includes(record.id)||(r.publishedSettings?.experts||[]).includes(record.id)))}
+function offlineImpact(record){
+ const pages=[],langs=schema?schema.LANGS.filter(l=>languageStatus({...record,draft:record.published||record.draft},l,schema).complete):['zh'];
+ for(const l of langs){
+  if(record.type==='experts'){pages.push(`专家列表页（${LANG_LABEL[l]}）`,`他的详情页（${LANG_LABEL[l]}）`)}
+  if(record.type==='courses'){pages.push(`课程列表页（${LANG_LABEL[l]}）`,`课程详情页（${LANG_LABEL[l]}）`)}
+  if(record.type==='cases'){pages.push(`案例列表页（${LANG_LABEL[l]}）`,`案例详情页（${LANG_LABEL[l]}）`);if(record.featured)pages.push(`首页业务场景（${LANG_LABEL[l]}）`)}
+  if(record.type==='qualifications')pages.push(`首页资质区（${LANG_LABEL[l]}）`);
+ }
+ if(record.type==='experts')for(const c of relatedCourses(record)){const ids=(c.experts||c.publishedSettings?.experts||[]);const main=ids[0]===record.id;pages.push(`课程《${label(c)}》的授课讲师${main?'（他是主讲）':'（授课）'}`)}
+ if(record.type==='courses')for(const id of record.experts||[]){const e=state.records.find(r=>r.id===id);if(e)pages.push(`专家《${label(e)}》详情页的授课课程`)}
+ return [...new Set(pages)];
+}
+async function revertEditing(){
+ if(!editing?.published)return;
+ if(await ask('撤销修改？','草稿会恢复成已发布的样子，发布状态和顺序不变。')!=='ok')return;
+ try{const record=await revertRecord(editing.id);const idx=state.records.findIndex(r=>r.id===record.id);if(idx>=0)state.records[idx]=record;editing=clone(record);dirty=false;renderEditor();toast('已撤销修改')}catch(error){toast(error.message)}
+}
+async function offlineById(id){
+ const record=state.records.find(r=>r.id===id);if(!record)return;
+ if(record.status==='published'){
+  if(await ask(`下架「${label(record)}」后，这些地方不再显示：`, '资料会保留，以后可以重新发布。', [['cancel','取消'],['ok','确认下架','primary']], offlineImpact(record))!=='ok')return;
+ }
+ try{const saved=await offlineRecord(record.id);const idx=state.records.findIndex(r=>r.id===saved.id);if(idx>=0)state.records[idx]=saved;if(editing&&editing.id===saved.id)editing=clone(saved);dirty=false;renderAdmin();toast('已下架')}catch(error){toast(error.message)}
+}
+async function deleteById(id){
+ const record=state.records.find(r=>r.id===id);if(!record)return;
+ if(record.status==='published'){await ask('请先下架内容','已发布内容需要先下架，再执行删除。',[['ok','知道了','primary']]);return}
+ const files=uniqueDeleteFiles(record),relations=offlineImpact(record).filter(x=>x.includes('课程《')||x.includes('详情页的授课课程'));
+ const list=[...files.map(f=>`会一起删掉的文件：${f.name||f.id}（${formatSize(f.size)}）`),...relations.map(x=>`会去掉的关联：${x}`),'删除前会自动备份一次'];
+ if(await ask(`删除「${label(record)}」`,`删除后无法撤销。`,[['cancel','取消'],['ok','确认删除','danger']],list)!=='ok')return;
+ try{await removeRecord(record.id);state=await readState();if(editing&&editing.id===record.id){editing=null;dirty=false;section=record.type}renderAdmin();toast('记录已删除')}catch(error){toast(error.message)}
 }
 async function uploadFiles(files,slot,clipIndex){if(!files.length||busy)return;const expectedTab=tab,expectedID=editing.id;busy=true;try{for(const file of files){const isImg=slot==='image'||slot==='clip-cover',isVideo=slot==='clip-video',ext=file.name.split('.').pop().toLowerCase();if(!(isImg?['jpg','jpeg','png','webp']:isVideo?['mp4']:['pdf','docx','xlsx','pptx']).includes(ext)){toast('文件格式不支持，请按上传区提示选择');continue}if(file.size>(isImg?10:30)*1024*1024){toast(`文件过大：本区域上限 ${isImg?10:30} MB`);continue}const bar=document.querySelector('#upload-progress');if(bar)bar.innerHTML=`<div class="progress-label">正在上传 ${esc(file.name)}</div><div class="upload-progress"><span style="width:30%"></span></div>`;let dims;if(isImg||isVideo){dims=await getDimensions(file,isVideo);if(!dims){toast('无法读取该文件，请选择浏览器可识别的图片或视频');continue}if((slot==='clip-cover'||isVideo)&&Math.abs(dims.w/dims.h-16/9)>.025){toast('此片段媒体不是 16:9，请调整后重新选择');continue}}const saved=await uploadRequest(file);if(bar?.querySelector('span'))bar.querySelector('span').style.width='100%';if(!editing||editing.id!==expectedID||tab!==expectedTab)break;const media={...saved,type:saved.mime,displayName:'',dimensions:dims||null};const v=editing.draft[tab];if(slot==='image')v.image=media;else if(slot==='attachments')v.attachments.push(media);else if(v.clips[clipIndex])v.clips[clipIndex][slot==='clip-video'?'video':'cover']=media;dirty=true;toast('文件已上传到本地后台，点击保存草稿后写入内容');}}catch(error){toast(`文件上传失败：${error.message}`)}finally{busy=false;renderEditor();}}
 async function getDimensions(file,video){return new Promise(resolve=>{const url=URL.createObjectURL(file),el=document.createElement(video?'video':'img');let done=false;const finish=value=>{if(done)return;done=true;clearTimeout(timer);URL.revokeObjectURL(url);resolve(value)};const timer=setTimeout(()=>finish(null),8000);el[video?'onloadedmetadata':'onload']=()=>finish({w:video?el.videoWidth:el.naturalWidth,h:video?el.videoHeight:el.naturalHeight});el.onerror=()=>finish(null);if(video)el.preload='metadata';el.src=url;});}
@@ -227,16 +313,20 @@ async function action(value){const [act,arg,arg2]=value.split(':');
  if(act==='save'){if(await saveEditing())renderEditor();return}
  if(act==='publish-edit'){await publish(editing,true);return}
  if(act==='publish'){await publish(state.records.find(r=>r.id===arg));return}
- if(act==='offline'){if(await ask('下架这条内容？','下架后不再出现在前台页面，资料仍可在后台编辑。')==='ok'){const old=clone(state),record=state.records.find(r=>r.id===arg);record._action='offline';if(!await persist())state=old;renderAdmin();toast('已下架')}return}
+ if(act==='offline'){await offlineById(arg);return}
+ if(act==='revert-edit'){await revertEditing();return}
+ if(act==='offline-edit'){if(editing)await offlineById(editing.id);return}
+ if(act==='delete-edit'){if(editing)await deleteById(editing.id);return}
  if(act==='feature'){const r=state.records.find(r=>r.id===arg),[u,n]=featureTypes[r.type];if(!r.featured&&state.records.filter(x=>x.type===r.type&&x.featured).length>=3){await ask(`首页最多展示 3 ${u}`,`请先取消一${u}“首页展示中”的${n}，再选择这一${u}。`,[['ok','知道了','primary']]);return}const old=clone(state),on=!r.featured;r.featured=on;if(!await persist())state=old;renderAdmin();toast(on?'已设为首页展示':'已取消首页展示');return}
- if(act==='delete'){const r=state.records.find(r=>r.id===arg);if(r.status==='published'){await ask('请先下架内容','已发布内容需要先下架，再执行删除。',[['ok','知道了','primary']]);return}if(await ask('删除这条记录？','删除后无法撤销（备份中的旧记录除外）。',[['cancel','取消'],['ok','确认删除','danger']])==='ok'){const old=clone(state);state.records=state.records.filter(r=>r.id!==arg);if(!await persist())state=old;renderAdmin();toast('记录已删除')}return}
+ if(act==='delete'){await deleteById(arg);return}
  if(act==='upload'){pickFile(arg,arg2===undefined?null:+arg2);return}
  if(act==='remove-media'){if(await ask('移除当前文件？',`仅移除 ${languages[tab]} 草稿的当前文件，不影响其他语言或上一版已发布内容。`)!='ok')return;const v=editing.draft[tab];if(arg==='image')v.image=null;else v.clips[+arg2][arg==='clip-video'?'video':'cover']=null;dirty=true;renderEditor();return}
  if(act==='remove-file'){if(await ask('移除当前语言的附件？','不会移除其他语言的附件，已发布版本会保留至再次发布。')==='ok'){editing.draft[tab].attachments.splice(+arg2,1);dirty=true;renderEditor()}return}
  if(act==='clip-add'){editing.draft[tab].clips.push({title:'',video:null,cover:null});dirty=true;renderEditor();return}
  if(act==='clip-delete'){if(await ask('删除此预览片段？','仅影响当前语言的草稿。')==='ok'){editing.draft[tab].clips.splice(+arg,1);dirty=true;renderEditor()}return}
  if(act==='clip-up'||act==='clip-down'){const clips=editing.draft[tab].clips,i=+arg,j=act==='clip-up'?i-1:i+1;if(j>=0&&j<clips.length){[clips[i],clips[j]]=[clips[j],clips[i]];dirty=true;renderEditor()}return}
- if(act==='preview'||act==='preview-edit'){previewRecord=clone(act==='preview'?state.records.find(r=>r.id===arg):editing);previewLang=tab==='base'?'zh':tab;showPreview();return}
+ if(act==='preview-edit'){await previewEditing();return}
+ if(act==='preview'){await openPreview(state.records.find(r=>r.id===arg),'zh');return}
 }
 function recordPublic(r,lang,preview=false){return (preview?r.draft:r.published)?.[lang];}
 function publicTitle(type,lang){return {zh:{qualifications:'公司资质',experts:'专家及讲师团队',courses:'AI 课程',cases:'应用案例'},en:{qualifications:'Company qualifications',experts:'Experts & Instructors',courses:'AI Courses',cases:'Use cases'},vi:{qualifications:'Hồ sơ năng lực',experts:'Chuyên gia & Giảng viên',courses:'Khóa học AI',cases:'Tình huống ứng dụng'}}[lang][type];}

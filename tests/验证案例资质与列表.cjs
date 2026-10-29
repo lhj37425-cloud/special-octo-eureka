@@ -82,7 +82,7 @@ let browser;
  assert.ok(Math.max(newQual.draft.shared.image.width,newQual.draft.shared.image.height)<=2400,'资质长边不超过 2400');
  assert.ok(!newQual.draft.shared.image.width||newQual.draft.shared.image.width>0);
  // 发布后可以勾首页展示；已有 3 个时第 4 个保存会提示
- await page.click('[data-action="publish-edit"]');await page.waitForSelector('dialog[open]');await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(500);
+ await page.click('[data-action="publish-edit"]');await page.waitForSelector('dialog[open]');await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(500);if(await page.locator('#modal[open]').count())await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(300);
  await page.check('[data-featured]');
  await page.click('[data-action="save"]');await page.waitForTimeout(700);
  assert.match(await page.locator('#toast').innerText(),/最多展示 3/, '勾第 4 个要提示最多 3 个');

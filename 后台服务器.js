@@ -63,7 +63,7 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
  if(p==='/api/records'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{records:core.list()})}
  if(p==='/api/backup'&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;if(!core.can(user,'backup'))return json(res,403,{error:'你的账号没有备份权限。'});return json(res,200,{ok:true,path:core.backup()})}
  if(p==='/api/records'&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;const d=JSON.parse((await body(req)).toString()||'{}');return json(res,200,{record:core.saveRecord(d,user)})}
- let m=p.match(/^\/api\/records\/([^/]+)\/(publish|offline)$/);if(m&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;return json(res,200,{record:m[2]==='publish'?core.publish(m[1],user):core.offline(m[1],user)})}
+ let m=p.match(/^\/api\/records\/([^/]+)\/(publish|offline|revert)$/);if(m&&req.method==='POST'){const user=protectWrite(req,res);if(!user)return;return json(res,200,{record:m[2]==='publish'?core.publish(m[1],user):m[2]==='offline'?core.offline(m[1],user):core.revert(m[1],user)})}
  m=p.match(/^\/api\/records\/([^/]+)$/);if(m&&req.method==='DELETE'){const user=protectWrite(req,res);if(!user)return;core.remove(m[1],user);return json(res,200,{ok:true})}
  if(p==='/api/schema'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{schema:{LANGS:schema.LANGS,TYPES:schema.TYPES}})}
  if(p==='/api/options'&&req.method==='GET'){if(!protect(req,res))return;return json(res,200,{options:core.listOptions()})}

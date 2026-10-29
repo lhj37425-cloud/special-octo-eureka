@@ -12,7 +12,7 @@ const L = {
 function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 const lines = v => String(v || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
 // 读取某语言可显示的案例：编号按后台已发布案例的 order 排列，该语言没填完的案例不显示
-function loadCases(lang) { return frontData.cases(lang); }
+function loadCases(lang, override = null) { return frontData.cases(lang, override); }
 
 // 用“关于我们”页面作为外框（页头、页脚、联系表单），只替换中间内容
 function shell(lang, publicRoot, pagePath, title, desc, main) {
@@ -39,8 +39,8 @@ function crumbs(lang, publicRoot, items) {
   return `<nav class="breadcrumbs" aria-label="${label}"><a href="/${lang}/">${home}</a>` + items.map(([text, href]) => `<span aria-hidden="true">/</span>` + (href ? `<a href="${href}">${esc(text)}</a>` : `<span>${esc(text)}</span>`)).join('') + `</nav>`;
 }
 
-function renderDetail(lang, slug, publicRoot) {
-  const t = L[lang], cases = loadCases(lang);
+function renderDetail(lang, slug, publicRoot, override = null) {
+  const t = L[lang], cases = loadCases(lang, override);
   const index = cases.findIndex(c => c.slug === slug);
   if (index < 0) return null;
   const c = cases[index], d = c[lang];
@@ -67,8 +67,8 @@ function renderDetail(lang, slug, publicRoot) {
   return shell(lang, publicRoot, `cases/${c.slug}/`, `${d.title} | EVOL DREAM`, d.summary, main);
 }
 
-function renderList(lang, publicRoot) {
-  const t = L[lang], cases = loadCases(lang);
+function renderList(lang, publicRoot, override = null) {
+  const t = L[lang], cases = loadCases(lang, override);
   const cards = cases.map(c => { const d = c[lang]; return `<li><a class="case-card" href="/${lang}/cases/${c.slug}/"><div class="case-card-media"><img src="${esc(c.image)}" alt="${esc(d.title)}" loading="lazy" decoding="async" width="1600" height="532"><span class="case-card-no">${esc(c.no)}</span></div><div class="case-card-body"><p class="case-card-meta">${esc(d.industry)}</p><h2>${esc(d.title)}</h2><p class="case-card-summary">${esc(d.summary)}</p><div class="case-card-tags" aria-label="${esc(t.deliverLabel)}">${(d.deliverables || []).map(x => `<span>${esc(x)}</span>`).join('')}</div><span class="case-card-link">${esc(t.viewCase)} <i aria-hidden="true">→</i></span></div></a></li>`; }).join('');
   const main = `<main id="main"><section class="page-hero case-list-hero"><div class="container">${crumbs(lang, publicRoot, [[t.crumb]])}<h1>${esc(t.listTitle)}</h1><p class="intro">${esc(t.listIntro)}</p></div></section>`
     + `<section class="svc-section case-list-section"><div class="container"><ul class="case-grid">${cards}</ul>`
@@ -76,11 +76,11 @@ function renderList(lang, publicRoot) {
   return shell(lang, publicRoot, 'cases/', `${t.listTitle} | EVOL DREAM`, t.listIntro, main);
 }
 
-function render(lang, slug, publicRoot) {
+function render(lang, slug, publicRoot, override = null) {
   if (!L[lang]) return { status: 404, body: 'Not found' };
-  if (!slug) return { status: 200, body: renderList(lang, publicRoot) };
+  if (!slug) return { status: 200, body: renderList(lang, publicRoot, override) };
   if (slug) {
-    const body = renderDetail(lang, slug, publicRoot);
+    const body = renderDetail(lang, slug, publicRoot, override);
     if (body) return { status: 200, body };
   }
   const main = `<main id="main"><section class="page-hero"><div class="container"><h1>${esc(L[lang].notFound)}</h1><div class="hero-actions"><a class="button primary" href="/${lang}/#scenarios">← ${esc(L[lang].crumb)}</a></div></div></section>`;

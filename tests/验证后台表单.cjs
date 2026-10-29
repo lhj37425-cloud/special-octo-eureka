@@ -95,11 +95,12 @@ let browser;
  await page.click('[data-action="publish-edit"]');
  await page.waitForSelector('dialog[open]');
  const expertDialog=await page.locator('#modal').innerText();
- assert.ok(expertDialog.includes('已发布'),'中文填完、越南语/英文空着应能发布（D3）');
- assert.match(expertDialog,/越南语：不会显示/);
- assert.match(expertDialog,/英文：不会显示/);
+ assert.match(expertDialog,/中文页面：会显示|中文：会显示/,'中文填完、越南语/英文空着应能发布（D3）');
+ assert.match(expertDialog,/越南语页面：不会显示|越南语：不会显示/);
+ assert.match(expertDialog,/英文页面：不会显示|英文：不会显示/);
  await page.screenshot({path:path.join(shots,'03-发布确认.png')});
- await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(400);
+ await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(500);
+ if(await page.locator('#modal[open]').count())await page.click('#modal [data-answer="ok"]');
  assert.equal(recordByName('experts','新表单专家').status,'published');
  console.log('新专家表单：字数、大卡、照片、列表上限、三语对照、发布（D3）：通过');
 
@@ -162,8 +163,9 @@ let browser;
  await page.click('[data-action="publish-edit"]');
  await page.waitForSelector('dialog[open]');
  const courseDialog=await page.locator('#modal').innerText();
- assert.match(courseDialog,/中文：会显示/);assert.match(courseDialog,/越南语：不会显示/);
- await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(400);
+ assert.match(courseDialog,/中文页面：会显示|中文：会显示/);assert.match(courseDialog,/越南语页面：不会显示|越南语：不会显示/);
+ await page.click('#modal [data-answer="ok"]');await page.waitForTimeout(500);
+ if(await page.locator('#modal[open]').count())await page.click('#modal [data-answer="ok"]');
  assert.equal(recordByName('courses','表单验收课程').status,'published');
  console.log('新课程表单：分类、封面、专家拖动、课程信息、片段首帧、附件语言、发布：通过');
 

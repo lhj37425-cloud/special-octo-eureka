@@ -2,6 +2,8 @@ const http=require('http'),fs=require('fs'),path=require('path'),crypto=require(
 const {render}=require('./views.cjs');
 const adminCore=require('./后台服务.cjs');
 const frontData=require('./前台数据.cjs');
+const schema=require('./内容栏位.cjs');
+const casesModule=require('./cases.cjs');
 const root=__dirname,publicRoot=path.join(root,'public'),dataRoot=path.resolve(process.env.MVP_DATA_DIR||path.join(root,'data')),leadFile=path.join(dataRoot,'mvp-leads.json');
 const read=(f,fallback)=>fs.existsSync(f)?JSON.parse(fs.readFileSync(f,'utf8')):fallback;
 function write(f,v){const temp=f+'.tmp';fs.writeFileSync(temp,JSON.stringify(v,null,2));fs.renameSync(temp,f)}
@@ -31,6 +33,67 @@ if(/\/index\.html$/i.test(pathname)){res.writeHead(301,{Location:u.pathname.repl
 const caseRoute=pathname.match(/^\/(zh|en|vi)\/cases(?:\/([^/]+))?\/?$/);if(caseRoute){if(!pathname.endsWith('/')){res.writeHead(302,{Location:pathname+'/'+u.search});return res.end()}let page=require('./cases.cjs').render(caseRoute[1],caseRoute[2],publicRoot);return send(res,page.status,addStaticBackLink(page.body,pathname),'text/html; charset=utf-8')}
 const dynamic=pathname.match(/^\/(zh|en|vi)\/(courses|teachers)(?:\/([^/]+))?\/?$/);if(dynamic){if(!pathname.endsWith('/')){res.writeHead(302,{Location:pathname+'/'+u.search});return res.end()}let html=render(dynamic[1],dynamic[2],dynamic[3],content(),publicRoot);return send(res,html.status||200,html.body,'text/html; charset=utf-8')}
 const home=pathname.match(/^\/(zh|en|vi)\/$/);if(home){let lang=home[1];let file=path.join(publicRoot,lang,'index.html'),html=fs.readFileSync(file,'utf8'),sharedHome=require('./homepage-sections.cjs').render(lang),faqMatch=html.match(/<section class="faq-section">([\s\S]*?)<\/section>(?=<section class="contact-section")/),faqContent=faqMatch?faqMatch[1]:'',trustHome=require('./homepage-trust-production.cjs').render(lang,faqContent)+`<script>(()=>{const section=document.querySelector('.home-qualifications'),all=section?.querySelector('.home-view-all'),dialog=document.querySelector('.home-qualification-dialog'),image=dialog?.querySelector('img'),closeButton=dialog?.querySelector('button');let previousBodyOverflow='',previousDocumentOverflow='',scale=1;const renderScale=()=>{if(image)image.style.transform='scale('+scale+')'};const lockPage=()=>{previousBodyOverflow=document.body.style.overflow;previousDocumentOverflow=document.documentElement.style.overflow;document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden'};const unlockPage=()=>{document.body.style.overflow=previousBodyOverflow;document.documentElement.style.overflow=previousDocumentOverflow};if(closeButton){closeButton.textContent='×';closeButton.setAttribute('aria-label',${JSON.stringify({zh:'关闭图片预览',en:'Close image preview',vi:'Đóng ảnh xem trước'}[lang])});Object.assign(closeButton.style,{position:'absolute',top:'14px',right:'14px',zIndex:'3',display:'grid',placeItems:'center',width:'40px',height:'40px',padding:'0',border:'0',borderRadius:'50%',background:'#1a0d0e',color:'#fff',fontSize:'30px',lineHeight:'1',cursor:'pointer',boxShadow:'0 3px 12px rgba(0,0,0,.25)'})}if(image){image.style.transformOrigin='center center';image.style.transition='transform .12s ease'}all?.addEventListener('click',()=>{const expanded=all.getAttribute('aria-expanded')==='true';section.querySelectorAll('.is-extra').forEach(card=>card.hidden=expanded);all.setAttribute('aria-expanded',String(!expanded));all.querySelector('span').textContent=expanded?all.dataset.openLabel:all.dataset.closeLabel;all.querySelector('i').textContent=expanded?'↓':'↑'});section?.querySelectorAll('[data-home-qualification-preview]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();scale=1;renderScale();dialog.querySelector('strong').textContent=button.dataset.previewTitle;image.src=button.dataset.previewSrc;image.alt=button.querySelector('img').alt;lockPage();dialog.showModal()}));closeButton?.addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',event=>{if(event.target===dialog)dialog.close()});dialog?.addEventListener('close',()=>{scale=1;renderScale();unlockPage()});window.addEventListener('wheel',event=>{if(!dialog?.open||!event.ctrlKey)return;event.preventDefault();scale=Math.min(3,Math.max(.6,scale+(event.deltaY<0?.15:-.15)));renderScale()},{passive:false})})()<\/script>`,homeSections=/(?:<section class="section company-introduction-section"[\s\S]*?)?<section class="section services-section"[\s\S]*?(?=<section class="section process-section")/;html=html.replace(homeSections,sharedHome).replace(/<section class="section process-section"[\s\S]*?<\/section>(?=<section class="faq-section">)/,'').replace(/<section class="faq-section">[\s\S]*?<\/section>(?=<section class="contact-section")/,trustHome).replace('</head>','<link rel="stylesheet" href="/v2-home.css"><script src="/v2-home.js" defer></script></head>');return send(res,200,html,'text/html; charset=utf-8')}
+// ===== 后台预览（第 6 步）：要登录；同一套前台模板；这一条用草稿，其余用发布版 =====
+const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const previewCookie=req=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2));
+const previewUser=req=>adminCore.auth(previewCookie(req).admin_session||'');
+const previewLangName={zh:'中文',vi:'越南语',en:'英文'};
+const previewSegmentName={teachers:'专家及讲师',courses:'课程',cases:'应用案例',qualifications:'公司资质'};
+function previewBar(req,lang,segment,id,record){
+ const host=String(req.headers.host||'127.0.0.1').split(':')[0];
+ const links=Object.entries(previewLangName).map(([l,name])=>{
+  let visible=!record;
+  if(record){const draft=frontData.normalize({...record,published:record.draft});visible=frontData.languageComplete(record,draft,l)}
+  return `<a style="color:#fff;text-decoration:underline" href="/preview/${l}/${segment}/${id&&visible?encodeURIComponent(id)+'/':''}">${name}</a>`;
+ }).join(' · ');
+ const adminPort=process.env.ADMIN_PORT||(String(process.env.PORT||'')==='4373'?'4381':'4181');
+ return `<div class="preview-bar" style="position:sticky;top:0;z-index:99999;display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 18px;background:#1a0d0e;color:#fff;font:13px/1.5 system-ui,-apple-system,'Microsoft YaHei',sans-serif"><strong style="color:#f5c451">预览 · 未发布</strong><span>${previewSegmentName[segment]||''}</span><span>${links}</span><a style="color:#fff;margin-left:auto;text-decoration:underline" href="http://${host}:${adminPort}/">返回编辑</a></div>`;
+}
+function previewChrome(html,req,lang,segment,id,record){
+ html=html.replace(/<meta name="robots"[^>]*>/gi,'').replace('</head>','<meta name="robots" content="noindex"></head>');
+ html=html.replace(/\/admin-media\//g,'/preview-media/');
+ return html.replace('<body>','<body>'+previewBar(req,lang,segment,id,record));
+}
+function previewPrompt(req,lang,segment,id,record,missing){
+ const body=`<main id="main"><section class="v2-group"><div class="container"><h1>这种语言还没填完</h1><p>${previewLangName[lang]}还缺：${escHtml(missing.join('、')||'必填项')}。发布后这种语言不会显示。</p><p><a class="text-link" href="/preview/${lang}/${segment}/">返回预览列表</a></p></div></section></main>`;
+ const html=`<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>预览 · 未发布</title><link rel="stylesheet" href="/v2.css"><link rel="stylesheet" href="/v2-courses.css"></head><body>${previewBar(req,lang,segment,id,record)}${body}</body></html>`;
+ return html;
+}
+const previewMedia=pathname.match(/^\/preview-media\/([^/]+)$/);
+if(previewMedia){
+ if(!previewUser(req))return send(res,401,'请先登录后台再预览。','text/html; charset=utf-8');
+ const file=adminCore.filePath(previewMedia[1]);
+ if(!fs.existsSync(file))return send(res,404,'Not found','text/plain; charset=utf-8');
+ const ext=path.extname(file).toLowerCase(),type=mime[ext]||'application/octet-stream';
+ const stat=fs.statSync(file);
+ res.writeHead(200,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Content-Length':stat.size});
+ return fs.createReadStream(file).pipe(res);
+}
+const preview=pathname.match(/^\/preview\/(zh|en|vi)(?:\/(teachers|courses|cases|qualifications)(?:\/([^/]+))?)?\/?$/);
+if(preview){
+ if(!previewUser(req))return send(res,401,'请先登录后台再预览。','text/html; charset=utf-8');
+ const lang=preview[1],segment=preview[2]||'',id=preview[3]?decodeURIComponent(preview[3]):null;
+ if(!segment)return send(res,404,'预览地址不完整。','text/plain; charset=utf-8');
+ const record=id?adminCore.list().find(r=>r.id===id):null;
+ if(id&&!record)return send(res,404,'这条内容不存在。','text/plain; charset=utf-8');
+ if(record){
+  const draft=frontData.normalize({...record,published:record.draft});
+  if(!frontData.languageComplete(record,draft,lang)){
+   const missing=schema.langComplete(record.type,record.draft?.[lang]||{}).missing;
+   return send(res,200,previewPrompt(req,lang,segment,id,record,missing),'text/html; charset=utf-8');
+  }
+ }
+ let page;
+ if(segment==='cases')page=casesModule.render(lang,record?(record.slug||record.id):null,publicRoot,record?{id:record.id,draft:record.draft}:null);
+ else if(segment==='qualifications'){
+  if(!record)return send(res,404,'资质没有列表页。','text/plain; charset=utf-8');
+  const draft=frontData.normalize({...record,published:record.draft}),v=draft[lang]||{},img=draft.shared.image;
+  const main=`<main id="main"><section class="v2-group"><div class="container"><h1>${escHtml(v.name||'')}</h1><p>${escHtml(v.description||'')}</p>${img?`<img src="/preview-media/${encodeURIComponent(img.id)}" alt="${escHtml(v.name||'')}" style="max-width:100%;border-radius:12px">`:''}</div></section></main>`;
+  page={status:200,body:`<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/v2.css"><link rel="stylesheet" href="/v2-courses.css"></head><body>${main}</body></html>`};
+ } else page=render(lang,segment,id,frontData.content(record?{id:record.id,draft:record.draft}:null),publicRoot);
+ if(!page)return send(res,404,'预览失败。','text/plain; charset=utf-8');
+ return send(res,page.status||200,previewChrome(page.body,req,lang,segment,id,record),'text/html; charset=utf-8');
+}
 let file=path.resolve(publicRoot,pathname.slice(1));if(!file.startsWith(publicRoot+path.sep))return send(res,404,notFoundPage(pathname),'text/html; charset=utf-8');if(fs.existsSync(file)&&fs.statSync(file).isDirectory()){if(!pathname.endsWith('/')){res.writeHead(302,{Location:pathname+'/'+u.search});return res.end()}file=path.join(file,'index.html')}if(!fs.existsSync(file)||!fs.statSync(file).isFile())return send(res,404,notFoundPage(pathname),'text/html; charset=utf-8');if(path.extname(file).toLowerCase()==='.html'&&req.method==='GET')return send(res,200,addStaticBackLink(fs.readFileSync(file,'utf8'),pathname),'text/html; charset=utf-8');let stat=fs.statSync(file),headers={'Content-Type':mime[path.extname(file).toLowerCase()]||'application/octet-stream','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);if(range){let start=Number(range[1]),end=range[2]?Math.min(Number(range[2]),stat.size-1):stat.size-1;if(start>end||start>=stat.size){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});return res.end()}res.writeHead(206,{...headers,'Content-Range':`bytes ${start}-${end}/${stat.size}`,'Content-Length':end-start+1});return fs.createReadStream(file,{start,end}).pipe(res)}res.writeHead(200,{...headers,'Content-Length':stat.size});if(req.method==='HEAD')return res.end();fs.createReadStream(file).pipe(res)
 }catch(error){if(res.headersSent)return res.end();if(error instanceof URIError)return send(res,400,'400 Bad Request','text/plain; charset=utf-8');send(res,error.status||500,{error:error.status&&error.status<500?error.message:'本地服务暂时不可用，请重试。'})}});
 server.listen(Number(process.env.PORT||4173),'127.0.0.1',()=>console.log('EVOL DREAM MVP http://127.0.0.1:'+(process.env.PORT||4173)+'/zh/'));
