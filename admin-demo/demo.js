@@ -213,6 +213,7 @@ function confirmPublish(record){
  }
  if(!record.published)lines.push('这是第一次发布。');
  else {const changes=changedFieldLabels(record);lines.push(changes.length?`这次改了：${changes.join('、')}`:'这次没有改动。')}
+ lines.push('发布前会自动保存当前草稿。');
  return new Promise(resolve=>{
   modal.style.width='';
   modal.innerHTML=`<div class="dialog-body"><div class="eyebrow">PUBLISH</div><h2>发布「${esc(label(record))}」</h2><ul class="dialog-list">${lines.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${dangers.length?`<ul class="dialog-list">${dangers.map(x=>`<li style="color:#b91c1c;font-weight:600">${esc(x)}</li>`).join('')}</ul>`:''}</div><div class="dialog-actions"><button type="button" data-answer="cancel">取消</button><button type="button" data-answer="ok" class="primary">确认发布</button></div>`;
@@ -223,9 +224,26 @@ function confirmPublish(record){
   modal.showModal();
  });
 }
+function publishBlockers(record){
+ const blockers=[];if(!schema?.TYPES?.[record.type])return blockers;
+ const T=schema.TYPES[record.type],shared=record.draft?.shared||{};
+ for(const f of T.shared){
+  if(!f.required)continue;
+  if(f.type==='image'&&!shared[f.key])blockers.push(f.label);
+  if(f.type==='select'&&!shared[f.key])blockers.push(f.label);
+  if(f.type==='experts'&&(record.experts||shared.experts||[]).length<(f.minItems||1))blockers.push(`${f.label}至少 ${f.minItems||1} 位`);
+ }
+ const states=schema.LANGS.map(l=>languageStatus(record,l,schema));
+ if(!states.some(s=>s.complete)){blockers.push('至少把一种语言的必填项填完才能发布');states.forEach((st,i)=>{if(st.missing.length)blockers.push(`${LANG_LABEL[schema.LANGS[i]]}缺：${st.missing.join('、')}`)})}
+ states.forEach((st,i)=>{if(st.over.length)blockers.push(`${LANG_LABEL[schema.LANGS[i]]}超字数：${st.over.slice(0,3).join('；')}`)});
+ if(record.type==='experts'&&shared.bigCard){const big=state.records.filter(r=>r.type==='experts'&&r.id!==record.id&&r.status==='published'&&(r.published?.shared?.bigCard??r.draft?.shared?.bigCard));if(big.length>=4)blockers.push('大卡已有 4 位，要先取消一位')}
+ return [...new Set(blockers)];
+}
 async function publish(record,fromEditor=false){
  if(busy)return;
  if(fromEditor||(editing&&editing.id===record.id)){if(!await saveEditing(true))return;record=editing}
+ const blockers=publishBlockers(record);
+ if(blockers.length){await ask('还不能发布','下面这些改好后才能发布；草稿可以随时保存。',[['ok','去修改','primary']],blockers);return}
  const answer=await confirmPublish(record);if(answer!=='ok')return;
  busy=true;
  try{
