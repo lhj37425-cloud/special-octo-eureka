@@ -263,7 +263,7 @@ function renderClips(record, ui) {
     ${clips.map((clip, i) => `<div class="clip-card">
       <div class="clip-head"><strong class="small">片段 ${i + 1}</strong><div class="row">${btn('↑', `clip-up:${i}`, 'text-btn mini')}${btn('↓', `clip-down:${i}`, 'text-btn mini')}${btn('删除', `clip-remove:${i}`, 'text-btn danger-link')}</div></div>
       <div class="clip-media">
-        ${clip.video ? `<div><video controls preload="metadata" src="${ui.mediaURL(clip.video)}" ${clip.cover ? `poster="${ui.mediaURL(clip.cover)}"` : ''}></video><div class="clip-meta">${clip.duration || clip.video.duration || 0} 秒 · ${clip.video.width || 0}×${clip.video.height || 0} · ${(clip.video.size / 1048576).toFixed(1)} MB</div></div>` : `<div class="se-placeholder is-wide">${ui.icon('upload')}<span>尚未上传视频</span></div>`}
+        ${clip.video ? `<div><video controls preload="metadata" src="${ui.mediaURL(clip.video)}" ${clip.cover ? `poster="${ui.mediaURL(clip.cover)}"` : ''}></video><div class="clip-meta" data-clip-duration="${i}">${clip.duration || clip.video.duration || 0} 秒 · ${clip.video.width || 0}×${clip.video.height || 0} · ${(clip.video.size / 1048576).toFixed(1)} MB</div></div>` : `<div class="se-placeholder is-wide">${ui.icon('upload')}<span>尚未上传视频</span></div>`}
         ${clip.cover ? `<img src="${ui.mediaURL(clip.cover)}" alt="片段 ${i + 1} 封面">` : ''}
       </div>
       <div class="se-actions" style="margin-top:8px">
@@ -593,6 +593,23 @@ export function bindEditor(ctx) {
     } finally { uploading = false; }
   }
   for (const input of document.querySelectorAll('[data-editor-file]')) input.onchange = () => handleFile(input);
+
+  // 旧上传片段没有记时长：在后台页面里读一次视频元数据，保存草稿时一起写入
+  if (record.type === 'courses') {
+    for (const [index, clip] of (record.draft.shared.clips || []).entries()) {
+      if (!clip.video?.id || Number(clip.duration) > 0) continue;
+      const probe = document.createElement('video');
+      probe.preload = 'metadata';
+      probe.src = `/media/${encodeURIComponent(clip.video.id)}`;
+      probe.onloadedmetadata = () => {
+        if (!Number.isFinite(probe.duration) || probe.duration <= 0) return;
+        clip.duration = Math.round(probe.duration * 100) / 100;
+        const el = document.querySelector(`[data-clip-duration="${index}"]`);
+        if (el) el.textContent = `${clip.duration} 秒 · ${clip.video.width || 0}×${clip.video.height || 0} · ${((clip.video.size || 0) / 1048576).toFixed(1)} MB`;
+        if (ctx.onChange) ctx.onChange();
+      };
+    }
+  }
 
   async function useFrame(index) {
     const clip = record.draft.shared.clips[index];
