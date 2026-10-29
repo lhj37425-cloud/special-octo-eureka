@@ -15,7 +15,8 @@ async function request(url,options={}){const response=await fetch(url,options);c
  assert.strictEqual(retiredQualificationRoute.status,404,'旧资质二级页仍可访问');
  const expert=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'exp-qaexpert1',type:'experts',order:1,revision:0,draft:{zh:{name:'验收专家',identity:'主讲',tagline:'一句话介绍',org:'验收机构',description:'专家简介',image:upload.data.file,attachments:[]},en:{},vi:{}}})});
  await request(`http://127.0.0.1:4291/api/records/${expert.data.record.id}/publish`,{method:'POST',headers});
- const video=await request('http://127.0.0.1:4291/api/upload',{method:'POST',headers,body:JSON.stringify({name:'preview.mp4',mime:'video/mp4',base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Y6QAAAABJRU5ErkJggg=='})});
+ const videoBase64=fs.readFileSync(path.join(__dirname,'素材','测试视频.mp4')).toString('base64');
+ const video=await request('http://127.0.0.1:4291/api/upload',{method:'POST',headers,body:JSON.stringify({name:'preview.mp4',mime:'video/mp4',base64:videoBase64})});
  const course=await request('http://127.0.0.1:4291/api/records',{method:'POST',headers,body:JSON.stringify({id:'cou-qacourse1',type:'courses',order:1,experts:[expert.data.record.id],revision:0,draft:{zh:{name:'验收课程',goals:'课程目标',description:'课程简介',audience:'验收对象',outline:'课程大纲',category:'AIGC 课程',image:upload.data.file,attachments:[],clips:[{title:'验收预览片段',video:video.data.file,cover:upload.data.file}]},en:{},vi:{}}})});
  await request(`http://127.0.0.1:4291/api/records/${course.data.record.id}/publish`,{method:'POST',headers});
  const courseHtml=await (await fetch(`http://127.0.0.1:4292/zh/courses/${course.data.record.id}/`)).text();

@@ -1,3 +1,4 @@
+import {uploadMedia} from './media.js';
 export const languages={zh:'中文',en:'English',vi:'Tiếng Việt'};
 export const types={qualifications:'公司资质',experts:'专家团队',courses:'课程管理',cases:'应用案例'};
 export const emptyLang=()=>({name:'',org:'',description:'',validity:'',number:'',role:'',education:'',background:'',research:'',experience:'',audience:'',goals:'',outline:'',project:'',responsibility:'',results:'',industry:'',problem:'',steps:'',people:'',deliverables:'',highlight:'',evaluation:'',image:null,attachments:[],clips:[]});
@@ -25,7 +26,8 @@ export async function listLeads(){return (await request('/api/leads')).leads}
 export async function updateLead(id,input){return (await request(`/api/leads/${encodeURIComponent(id)}`,{method:'POST',body:JSON.stringify(input)})).lead}
 export async function removeLead(id){await request(`/api/leads/${encodeURIComponent(id)}`,{method:'DELETE'})}
 export async function logout(){await request('/api/logout',{method:'POST'});csrf='';known.clear();serverCopies.clear()}
-export async function upload(file){const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(file)});return (await request('/api/upload',{method:'POST',body:JSON.stringify({name:file.name,mime:file.type,base64})})).file}
+// 直接发文件字节（M9），不再转 base64；上传进度由 media.js 的 uploadMedia 提供
+export async function upload(file,onProgress){return uploadMedia(file,{onProgress})}
 export async function writeState(state){const next=new Set(state.records.map(r=>r.id).filter(Boolean));for(const id of known)if(!next.has(id))await request(`/api/records/${encodeURIComponent(id)}`,{method:'DELETE'});for(const local of state.records){const action=local._action;if(!action&&serverCopies.get(local.id)===sig(local))continue;const saved=(await request('/api/records',{method:'POST',body:JSON.stringify(local)})).record;if(action==='publish')await request(`/api/records/${encodeURIComponent(saved.id)}/publish`,{method:'POST'});else if(action==='offline')await request(`/api/records/${encodeURIComponent(saved.id)}/offline`,{method:'POST'});}state.records=(await readState()).records;return state}
 export async function readState(){const result=await request('/api/records');const records=result.records.map(r=>({...r,updated:r.updatedAt}));remember(records);return {records}}
 export async function resetState(){return readState()}

@@ -10,8 +10,13 @@ assert.match(store,/fetch\(url,\{credentials:'same-origin'/);
 assert.match(store,/request\('\/api\/records'/);
 assert.match(store,/request\(`\/api\/records\/\$\{encodeURIComponent\(saved\.id\)\}\/publish`/);
 assert.match(store,/request\(`\/api\/records\/\$\{encodeURIComponent\(saved\.id\)\}\/offline`/);
-assert.match(store,/request\('\/api\/upload'/);
+// 第 2 步起上传改成流式直传（M9），由 media.js 发原始文件字节
+const mediaCode=fs.readFileSync(path.join(root,'admin-demo','media.js'),'utf8');
+assert.match(store,/uploadMedia\(file,\{onProgress\}\)/);
+assert.match(mediaCode,/xhr\.open\('POST',\s*'\/api\/upload'\)/);
+assert.match(mediaCode,/xhr\.setRequestHeader\('X-File-Name'/);
 assert.ok(server.includes("'/demo.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','demo.js'))]"));
+assert.ok(server.includes("'/media.js':['text/javascript; charset=utf-8',fs.readFileSync(path.join(__dirname,'admin-demo','media.js'))]"));
 
 // 每一类可操作按钮都必须有明确处理器，且落到真实保存或上传。
 for(const operation of [

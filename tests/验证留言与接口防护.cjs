@@ -1,4 +1,4 @@
-const assert=require('assert/strict'),child=require('child_process'),fs=require('fs'),os=require('os'),path=require('path');
+const assert=require('assert/strict'),child=require('child_process'),fs=require('fs'),http=require('http'),os=require('os'),path=require('path');
 const root=path.join(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-guard-')),admin=path.join(temp,'admin'),mvp=path.join(temp,'mvp');fs.mkdirSync(mvp,{recursive:true});
 process.env.ADMIN_DATA_DIR=admin;process.env.MVP_DATA_DIR=mvp;const core=require('../后台服务.cjs');
 // 已创建的内容不能更改类型（否则没有发布权限的账号也能把已发布内容挪到别的栏目）
@@ -32,10 +32,16 @@ const lead=(extra={})=>fetch(front+'/api/leads',{method:'POST',headers:{'Content
  // 不存在的页面：按地址语言显示站内风格的 404 页，不再冒充 nginx；没有语言前缀时用越南语
  for(const [url,lang,title] of [['/zh/nope/','zh','页面不存在'],['/en/nope/','en','Page not found'],['/vi/nope/','vi','Không tìm thấy trang'],['/nope.txt','vi','Không tìm thấy trang']]){res=await fetch(front+url);const html=await res.text();assert.equal(res.status,404);assert.equal(res.headers.get('content-type'),'text/html; charset=utf-8');assert.ok(html.includes(`<h1>${title}</h1>`),`${url} 缺少 404 标题`);assert.match(html,/<meta name="robots" content="noindex">/);assert.doesNotMatch(html,/nginx|rel="canonical"|class="active"/);assert.ok(html.includes(`href="/${lang}/contact/"`));for(const l of ['zh','en','vi'])assert.match(html,new RegExp(`href="/${l}/" lang=`))}
  console.log('三语 404 页面：通过');
- // 上传：30MB 以内的视频可以上传，超过 30MB 给出明确提示
+ // 上传（M9）：流式直传，视频上限 50MB（D10），超过立刻拒收；改了后缀名的非视频文件也拒收
  res=await fetch(back+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account:'guard-admin',password:'1234567890'})});const data=await res.json();
- const h={'Content-Type':'application/json',cookie:res.headers.getSetCookie().map(c=>c.split(';')[0]).join('; '),'x-csrf-token':data.csrf};
- const upload=size=>fetch(back+'/api/upload',{method:'POST',headers:h,body:JSON.stringify({name:'video.mp4',mime:'video/mp4',base64:Buffer.alloc(size,1).toString('base64')})});
- res=await upload(29*1024*1024);assert.equal(res.status,201);
- res=await upload(31*1024*1024);assert.equal(res.status,400);assert.match((await res.json()).error,/不能超过 30MB/);
- console.log('上传 30MB 上限：通过')}catch(error){console.error(error);process.exitCode=1}finally{for(const s of servers)s.kill();setTimeout(()=>fs.rmSync(temp,{recursive:true,force:true}),300)}})();
+ const cookie=res.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
+ const streamHeaders={'Content-Type':'video/mp4',cookie,'x-csrf-token':data.csrf,'x-file-name':encodeURIComponent('video.mp4')};
+ const realVideo=fs.readFileSync(path.join(__dirname,'素材','测试视频.mp4'));
+ res=await fetch(back+'/api/upload',{method:'POST',headers:streamHeaders,body:realVideo});
+ assert.equal(res.status,201);const uploadedFile=(await res.json()).file;assert.equal(uploadedFile.width,160);assert.ok(uploadedFile.duration>0,'上传记录要带时长');
+ // 声明 51MB 的请求在收到文件头时就拒收，不读文件内容
+ const oversize=await new Promise((resolve,reject)=>{const req=http.request({host:'127.0.0.1',port:adminPort,path:'/api/upload',method:'POST',headers:{...streamHeaders,'content-length':String(51*1024*1024)}},response=>{let text='';response.setEncoding('utf8');response.on('data',c=>text+=c);response.on('end',()=>resolve({status:response.statusCode,text}))});req.on('error',reject);req.end()});
+ assert.equal(oversize.status,413);assert.match(oversize.text,/不能超过 50MB/);
+ res=await fetch(back+'/api/upload',{method:'POST',headers:streamHeaders,body:Buffer.from('not a video')});
+ assert.equal(res.status,400);assert.match((await res.json()).error,/MP4/);
+ console.log('流式上传、50MB 上限与视频类型校验：通过')}catch(error){console.error(error);process.exitCode=1}finally{for(const s of servers)s.kill();setTimeout(()=>fs.rmSync(temp,{recursive:true,force:true}),300)}})();

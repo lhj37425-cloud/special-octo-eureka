@@ -18,7 +18,7 @@ const sessionToken=core.login('admin','0987654321'),before=fs.readFileSync(state
 const timed=account=>{const start=process.hrtime.bigint();core.login(account,'wrong-password');return Number(process.hrtime.bigint()-start)};timed('admin');timed('nobody');
 const real=Math.min(...[1,2,3].map(()=>timed('admin'))),missing=Math.min(...[1,2,3].map(()=>timed('nobody')));assert.ok(missing>real*0.5,`不存在的账号耗时 ${missing} 明显短于存在的账号 ${real}`);console.log('登录耗时不泄露账号是否存在验证通过');
 // 删除内容时清理它独有的上传文件，其他内容仍在用的保留
-const shared=core.file('共用.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),own=core.file('独有.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),video=core.file('独有.mp4',Buffer.from([0,0,0,24,102,116,121,112]),'video/mp4');
+const shared=core.file('共用.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),own=core.file('独有.png',Buffer.from([137,80,78,71,13,10,26,10]),'image/png'),video=core.file('独有.mp4',fs.readFileSync(path.join(__dirname,'素材','测试视频.mp4')),'video/mp4');
 const keep=core.saveRecord({type:'courses',draft:{zh:{name:'保留课程',description:'说明',image:shared,attachments:[],clips:[]}}});
 const drop=core.saveRecord({type:'courses',draft:{zh:{name:'删除课程',description:'说明',image:own,attachments:[shared],clips:[{title:'片段',video,cover:own}]}}});
 core.remove(drop.id);assert.ok(!fs.existsSync(core.filePath(own.id)));assert.ok(!fs.existsSync(core.filePath(video.id)));assert.ok(fs.existsSync(core.filePath(shared.id)));core.remove(keep.id);assert.ok(!fs.existsSync(core.filePath(shared.id)));console.log('删除内容时清理独有上传文件验证通过');
