@@ -42,7 +42,33 @@ html:not(:lang(zh)) .eyebrow{text-transform:uppercase;letter-spacing:.14em}
 .header-inner{height:var(--header-h)}
 .brand{color:#fff}
 /* 甲方 logo（2026-10-28）：红色 E 加金色环，横着比竖着宽，按高度缩放 */
-.brand-mark{display:block;flex:none;width:auto;height:46px}
+.brand-mark{display:block;flex:none;width:auto;height:28px}
+/* 玻璃徽章（2026-10-29 方案 E，仅页头）：花体 E 原图不动，放进金色描边的磨砂玻璃容器，
+   一道斜向光泽每隔几秒从左扫到右；logo 是透明底，玻璃底从 E 周围透出来。
+   系统要求减少动态效果时不扫光。页脚 logo 不加容器。 */
+.site-header .brand-mark{
+  width:46px;height:46px;padding:6px;object-fit:contain;
+  border-radius:13px;border:1.5px solid var(--gold-soft);
+  background:
+    linear-gradient(115deg,transparent 24%,rgba(255,255,255,.5) 47%,rgba(255,255,255,.12) 53%,transparent 72%) -160% 0/230% 100% no-repeat,
+    linear-gradient(150deg,rgba(255,255,255,.24),rgba(255,255,255,.05) 46%,rgba(255,255,255,.02));
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 6px 16px rgba(0,0,0,.22);
+  animation:brandSheen 4.8s ease-in-out infinite
+}
+@keyframes brandSheen{
+  0%,30%{background-position:-160% 0,0 0}
+  70%,100%{background-position:240% 0,0 0}
+}
+@media(prefers-reduced-motion:reduce){.site-header .brand-mark{animation:none}}
+/* 滚动后浅色页头：徽章换成浅色玻璃，金边加深，光泽继续扫 */
+.v2-header .site-header.is-scrolled .brand-mark{
+  border-color:var(--gold);
+  background:
+    linear-gradient(115deg,transparent 24%,rgba(255,255,255,.55) 47%,rgba(255,255,255,.15) 53%,transparent 72%) -160% 0/230% 100% no-repeat,
+    linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,255,255,.42) 46%,rgba(255,255,255,.3));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 12px rgba(40,20,16,.1)
+}
 .brand strong{font-size:21px;font-weight:800;letter-spacing:.02em;color:#fff}
 .brand small{margin-top:3px;font-size:12px;letter-spacing:.08em;color:var(--muted-d)}
 .main-nav>a{padding:26px 0;font-size:15px;color:#e9e1db}
@@ -102,12 +128,13 @@ main#main>:is(.page-hero,.v2-dark):first-child:not(.home-hero){border-top:var(--
 }
 @media(max-width:700px){
   .brand{gap:9px}
-  .brand-mark{height:34px}
+  .brand-mark{height:26px}
+  .site-header .brand-mark{width:40px;height:40px;padding:5px}
   .brand strong{font-size:18px}
   .brand small{font-size:12px;letter-spacing:.04em}
 }
 /* 小手机上 logo 再小一点，和语言按钮、菜单按钮放得下一行 */
-@media(max-width:480px){.brand{gap:7px}.brand-mark{height:30px}}
+@media(max-width:480px){.brand{gap:7px}.brand-mark{height:23px}.site-header .brand-mark{width:36px;height:36px;padding:4px}}
 
 /* 页脚：更深的暖黑 */
 .site-footer{background:var(--ink-3);color:var(--muted-d);border-top:0;padding:40px 0 24px}
