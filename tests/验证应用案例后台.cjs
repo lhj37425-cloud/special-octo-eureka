@@ -22,8 +22,8 @@ try{
  const detail=cases.render('zh',recs[1].slug,publicRoot);assert.equal(detail.status,200);assert(detail.body.includes('第二步'));assert(!detail.body.includes('case-hero2-quote'));
  assert(!cases.render('en',undefined,publicRoot).body.includes('案例1'));
  assert.equal(cases.render('en',recs[0].slug,publicRoot).status,404);
- // 首页：未勾选时显示前 3 个；勾选后显示勾选的；最多 3 个；交付成果最多显示 3 项
- let h=home.render('zh');assert(h.includes('案例1')&&h.includes('案例3')&&!h.includes('案例4'));assert(h.includes('4 个行业应用案例'));assert(!h.includes('成果四'));
+ // 首页：未勾选时显示前 3 个；勾选后显示勾选的；最多 3 个；卡片上不显示交付成果；标题行右边是“查看全部案例”按钮
+ let h=home.render('zh');assert(h.includes('案例1')&&h.includes('案例3')&&!h.includes('案例4'));assert(h.includes('href="/zh/cases/">查看全部案例'));assert(!h.includes('成果一'));
  core.saveRecord({...core.list().find(r=>r.id===ids[3]),featured:true});
  h=home.render('zh');assert(h.includes('案例4')&&!h.includes('案例1'));
  for(const id of ids.slice(0,2))core.saveRecord({...core.list().find(r=>r.id===id),featured:true});

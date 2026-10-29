@@ -12,10 +12,12 @@
 /* 越南语、英文标题长，字号小一档 */
 html:not(:lang(zh)) .home-head h2,html:not(:lang(zh)) .home-about-copy h2,html:not(:lang(zh)) .home-faq .faq-layout h2{font-size:clamp(28px,2.6vw,35px)}
 .home-head>div>p:not(.eyebrow){margin:16px 0 0;font-size:16.5px;line-height:1.8;color:var(--muted)}
-.home-head-link{display:inline-flex;flex:none;align-items:center;gap:8px;padding-bottom:4px;font-size:14.5px;font-weight:700;color:var(--red)}
+/* 标题行右边的链接按钮（如“查看全部案例”）：和“了解我们”一样，红色描边胶囊，鼠标移上去红底白字、箭头往右挪 */
+.home-head-link{display:inline-flex;flex:none;align-items:center;gap:10px;min-height:48px;padding:0 24px;border:1px solid var(--red);border-radius:999px;font-size:14.5px;font-weight:700;color:var(--red);transition:background-color .2s ease,color .2s ease}
+.home-head-link:hover{background:var(--red);color:#fff}
 .home-head-link svg{transition:transform .25s ease}
 .home-head-link:hover svg{transform:translateX(4px)}
-.home-head-link:focus-visible{outline:2px solid var(--red);outline-offset:4px;border-radius:4px}
+.home-head-link:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 /* 深色带里的标题行：左边小标签和标题，右边一段说明 */
 .v2-dark .home-head>p{max-width:480px;margin:0;font-size:15.5px;line-height:1.8;color:var(--muted-d)}
 

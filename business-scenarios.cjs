@@ -1,7 +1,7 @@
 const copy={
- zh:{eyebrow:'03 / 业务场景',title:'从具体工作任务开始，让 AI 发挥作用',intro:'从业务价值、资料条件与人工复核方式出发，选择适合先试点的应用场景。',application:'应用案例示意',more:'查看全部案例',browse:'{n} 个行业应用案例'},
- en:{eyebrow:'03 / BUSINESS SCENARIOS',title:'Start with a real work task, then make AI useful',intro:'Choose a suitable starting point based on business value, available materials and the required human review.',application:'Illustrative use case',more:'View all cases',browse:'{n} industry use cases'},
- vi:{eyebrow:'03 / TÌNH HUỐNG ỨNG DỤNG',title:'Bắt đầu từ một công việc cụ thể để AI phát huy tác dụng',intro:'Chọn tình huống phù hợp để thử nghiệm dựa trên giá trị kinh doanh, tài liệu sẵn có và cách kiểm tra của con người.',application:'Minh họa ứng dụng',more:'Xem tất cả tình huống',browse:'{n} tình huống theo ngành'}
+ zh:{eyebrow:'03 / 业务场景',title:'从具体工作任务开始，让 AI 发挥作用',intro:'从业务价值、资料条件与人工复核方式出发，选择适合先试点的应用场景。',application:'应用案例示意',more:'查看全部案例'},
+ en:{eyebrow:'03 / BUSINESS SCENARIOS',title:'Start with a real work task, then make AI useful',intro:'Choose a suitable starting point based on business value, available materials and the required human review.',application:'Illustrative use case',more:'View all cases'},
+ vi:{eyebrow:'03 / TÌNH HUỐNG ỨNG DỤNG',title:'Bắt đầu từ một công việc cụ thể để AI phát huy tác dụng',intro:'Chọn tình huống phù hợp để thử nghiệm dựa trên giá trị kinh doanh, tài liệu sẵn có và cách kiểm tra của con người.',application:'Minh họa ứng dụng',more:'Xem tất cả tình huống'}
 };
 
 function esc(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
@@ -15,7 +15,7 @@ function render(language='zh'){
  if(!scenarios.length)return '';
  // 配图是 AI 生成的示意图，左上角标“应用案例示意 · 编号”
  const cards=scenarios.map(s=>`<a class="home-case" href="${s.link}"><span class="home-case-img"><img src="${s.image}" alt="" loading="lazy" decoding="async" width="1600" height="532"><em>${esc(t.application)} · ${s.no}</em></span><span class="home-case-body"><small>${esc(s.label)}</small><h3>${esc(s.name)}</h3><p>${esc(s.description)}</p></span></a>`).join('');
- return `<section class="business-scenarios" id="scenarios" aria-labelledby="business-scenarios-title"><div class="container"><div class="home-head"><div><p class="eyebrow">${esc(t.eyebrow)}</p><h2 id="business-scenarios-title">${esc(t.title)}</h2><p>${esc(t.intro)}</p></div><a class="home-head-link" href="/${language}/cases/">${esc(t.more)} · ${esc(t.browse.replace('{n}',cases.length))}${arrow}</a></div><div class="home-case-grid">${cards}</div></div></section>`;
+ return `<section class="business-scenarios" id="scenarios" aria-labelledby="business-scenarios-title"><div class="container"><div class="home-head"><div><p class="eyebrow">${esc(t.eyebrow)}</p><h2 id="business-scenarios-title">${esc(t.title)}</h2><p>${esc(t.intro)}</p></div><a class="home-head-link" href="/${language}/cases/">${esc(t.more)}${arrow}</a></div><div class="home-case-grid">${cards}</div></div></section>`;
 }
 
 module.exports={render};

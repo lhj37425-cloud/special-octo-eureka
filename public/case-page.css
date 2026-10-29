@@ -79,13 +79,7 @@
 
 /* 全部案例列表页 */
 .case-list-hero{padding-bottom:56px;background:linear-gradient(180deg,#f7f5f4 0,#f3efed 100%)}
-.case-list-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:clamp(40px,5vw,80px);align-items:end}
 .case-list-hero h1{font-weight:700;letter-spacing:-.02em}
-.case-stats{display:grid;grid-template-columns:auto 1fr;align-items:center;margin:0;background:#fff;border:1px solid #e4dcd8;border-top:3px solid var(--red)}
-.case-stats>div{padding:20px 22px}
-.case-stats dt{color:var(--red);font-size:40px;font-weight:700;line-height:1}
-.case-stats dd{margin:8px 0 0;color:#444;font-size:14px}
-.case-stats>p{margin:0;padding:18px 22px 18px 0;color:var(--muted);font-size:13px;line-height:1.7}
 .case-list-section{background:#fff}
 .case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:0;padding:0;list-style:none}
 .case-grid>li{display:flex}
@@ -112,5 +106,5 @@
 .case-list-cta{margin-top:48px;background:#f7f4f3}
 @media(prefers-reduced-motion:reduce){.case-card,.case-card:after,.case-card-media img,.case-card-no,.case-card-link i{transition:none}.case-grid .case-card:hover,.case-grid .case-card:focus-visible{transform:none}.case-card:hover .case-card-media img{transform:none}}
 @media(hover:none){.case-grid:hover .case-card,.case-grid:focus-within .case-card{opacity:1;filter:none}}
-@media(max-width:1000px){.case-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.case-list-hero-grid{grid-template-columns:1fr;gap:28px}.case-stats{max-width:480px}}
+@media(max-width:1000px){.case-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.case-grid{grid-template-columns:1fr}}
