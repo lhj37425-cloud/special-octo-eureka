@@ -3,6 +3,7 @@ const {Transform,pipeline}=require('stream');
 const core=require('./后台服务.cjs');
 const schema=require('./内容栏位.cjs');
 const media=require('./媒体信息.cjs');
+const deploy=require('./部署环境.cjs');
 const port=Number(process.env.ADMIN_PORT||4181);
 const html=fs.readFileSync(path.join(__dirname,'admin-demo','index.html'),'utf8');
 const assets={
@@ -44,15 +45,17 @@ const token=req=>cookie(req).admin_session||'';
 const firstLoginPaths=['/api/me','/api/password','/api/logout'];
 const protect=(req,res)=>{const user=core.auth(token(req));if(!user){json(res,401,{error:'请先登录。'});return null}if(user.mustChange&&!firstLoginPaths.includes(new URL(req.url,'http://localhost').pathname)){json(res,403,{error:'请先修改初始密码。'});return null}return user};
 const protectWrite=(req,res)=>{const user=protect(req,res);if(!user)return null;const csrf=cookie(req).admin_csrf||'';if(!csrf||req.headers['x-csrf-token']!==csrf){json(res,403,{error:'安全校验失效，请重新登录。'});return null}return user};
-const session=(res,t,user)=>{const csrf=crypto.randomBytes(24).toString('base64url');return json(res,200,{ok:true,csrf,user},{'Set-Cookie':[`admin_session=${encodeURIComponent(t)}; HttpOnly; SameSite=Strict; Path=/`,`admin_csrf=${encodeURIComponent(csrf)}; SameSite=Strict; Path=/`]})};
+// Cookie 属性：HTTPS 下补 Secure（反代终结 TLS 时按 X-Forwarded-Proto 判断，本地 HTTP 调试不受影响）
+const cookieFlags = req => (deploy.secure(req) ? ' Secure' : '');
+const session=(req,res,t,user)=>{const csrf=crypto.randomBytes(24).toString('base64url'),flags=cookieFlags(req);return json(res,200,{ok:true,csrf,user},{'Set-Cookie':[`admin_session=${encodeURIComponent(t)}; HttpOnly; SameSite=Strict; Path=/${flags}`,`admin_csrf=${encodeURIComponent(csrf)}; SameSite=Strict; Path=/${flags}`]})};
 const loginAttempts=new Map();
-function loginKey(req,account){return `${req.socket.remoteAddress||'local'}:${String(account||'').slice(0,120)}`}
+function loginKey(req,account){return `${deploy.ip(req)}:${String(account||'').slice(0,120)}`}
 function limited(req,account){const now=Date.now(),entry=loginAttempts.get(loginKey(req,account));if(!entry||now-entry.started>15*60*1000)return false;return entry.count>=5&&now-entry.last<5*60*1000}
 function failed(req,account){const now=Date.now(),key=loginKey(req,account),entry=loginAttempts.get(key);if(!entry||now-entry.started>15*60*1000)loginAttempts.set(key,{started:now,last:now,count:1});else{entry.last=now;entry.count++}}
 const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost'),p=decodeURIComponent(url.pathname);if(p==='/api/status')return json(res,200,{initialized:core.read().users.length>0});
- if(p==='/api/setup'&&req.method==='POST'){if(core.read().users.length)return json(res,403,{error:'主管理员已经创建，请直接登录。'});const d=JSON.parse((await body(req)).toString()||'{}');core.initialize(String(d.account||'').trim(),d.password,d.name);const t=core.login(String(d.account||'').trim(),d.password);return session(res,t,core.auth(t))}
- if(p==='/api/login'&&req.method==='POST'){const d=JSON.parse((await body(req)).toString()||'{}');if(limited(req,d.account))return json(res,429,{error:'登录尝试过多，请 5 分钟后再试。'});const t=core.login(d.account,d.password);if(!t){failed(req,d.account);return json(res,401,{error:'账号或密码错误，或账号已停用。'})}loginAttempts.delete(loginKey(req,d.account));return session(res,t,core.auth(t))}
- if(p==='/api/logout'&&req.method==='POST'){if(!protectWrite(req,res))return;core.logout(token(req));return json(res,200,{ok:true},{'Set-Cookie':['admin_session=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/','admin_csrf=; Max-Age=0; SameSite=Strict; Path=/']})}
+ if(p==='/api/setup'&&req.method==='POST'){if(core.read().users.length)return json(res,403,{error:'主管理员已经创建，请直接登录。'});const d=JSON.parse((await body(req)).toString()||'{}');core.initialize(String(d.account||'').trim(),d.password,d.name);const t=core.login(String(d.account||'').trim(),d.password);return session(req,res,t,core.auth(t))}
+ if(p==='/api/login'&&req.method==='POST'){const d=JSON.parse((await body(req)).toString()||'{}');if(limited(req,d.account))return json(res,429,{error:'登录尝试过多，请 5 分钟后再试。'});const t=core.login(d.account,d.password);if(!t){failed(req,d.account);return json(res,401,{error:'账号或密码错误，或账号已停用。'})}loginAttempts.delete(loginKey(req,d.account));return session(req,res,t,core.auth(t))}
+ if(p==='/api/logout'&&req.method==='POST'){if(!protectWrite(req,res))return;core.logout(token(req));const flags=cookieFlags(req);return json(res,200,{ok:true},{'Set-Cookie':[`admin_session=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/${flags}`,`admin_csrf=; Max-Age=0; SameSite=Strict; Path=/${flags}`]})}
  if(p==='/api/me'&&req.method==='GET'){const user=protect(req,res);if(!user)return;return json(res,200,{user})}
  if(p==='/api/password'&&req.method==='POST'){if(!protectWrite(req,res))return;const d=JSON.parse((await body(req)).toString()||'{}');return json(res,200,{user:core.changePassword(token(req),d.oldPassword,d.newPassword)})}
  if(p==='/api/users'&&req.method==='GET'){const user=protect(req,res);if(!user)return;return json(res,200,{users:core.listUsers(user)})}
@@ -75,5 +78,5 @@ const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'h
 }catch(e){json(res,e.status||400,{error:e.message||'请求失败。'})}});
 // 启动时清理一次没用的上传文件，之后每天一次（M10）
 const cleanupUploads=()=>{try{const result=core.cleanupUploads();if(result.removed.length)console.log(`已清理 ${result.removed.length} 个没被用到的上传文件`)}catch(error){console.error('清理上传文件失败：'+error.message)}};
-server.listen(port,'127.0.0.1',()=>{console.log(`后台 http://127.0.0.1:${port}`);cleanupUploads()});
+server.listen(port,process.env.HOST||'127.0.0.1',()=>{console.log(`后台 http://127.0.0.1:${port}`);cleanupUploads()});
 setInterval(cleanupUploads,24*60*60*1000).unref();

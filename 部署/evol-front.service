@@ -1,0 +1,30 @@
+[Unit]
+Description=EVOL DREAM 前台服务 (4173)
+Documentation=file:///srv/evol/上线验收报告.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/evol
+ExecStart=/usr/bin/node server.js
+Environment=NODE_ENV=production
+Environment=PORT=4173
+Environment=HOST=127.0.0.1
+Environment=MVP_DATA_DIR=/srv/evol/data
+Environment=ADMIN_DATA_DIR=/srv/evol/data/admin-backend
+Environment=ADMIN_BASE_PATH=/admin/
+Restart=always
+RestartSec=3
+# 崩溃前的最后几条输出留在 journal 里
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

@@ -11,3 +11,9 @@ data/migrations/
 # Customer enquiries submitted through the website contact form (personal data)
 data/mvp-leads.json
 data/*.tmp
+
+# 测试用的 Playwright 依赖，服务器上不需要
+node_modules/
+
+# WorkBuddy 的本地工作目录
+.workbuddy/

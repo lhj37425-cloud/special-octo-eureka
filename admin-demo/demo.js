@@ -262,11 +262,14 @@ async function publish(record,fromEditor=false){
   await ask('还不能发布','下面这些改好后才能发布：',[['ok','去修改','primary']],lines);
  }
 }
-// 真页面预览（G3）：前台端口跟着后台端口走；预览用后台草稿，其余用发布版
+// 真页面预览（G3）：上线后后台挂在同域 /admin/ 下，预览与前台同源，直接用相对地址（HTTPS 下也不会变混合内容）；
+// 本地双端口调试（4181/4381）仍按端口映射到前台 4173/4373
 function previewURL(record,lang){
  const segment={experts:'teachers',courses:'courses',cases:'cases',qualifications:'qualifications'}[record.type]||'teachers';
+ const rest=`preview/${lang}/${segment}/${encodeURIComponent(record.id)}/`;
+ if(/^\/admin(\/|$)/.test(location.pathname))return `/${rest}`;
  const frontPort={4381:'4373',4181:'4173'}[location.port]||location.port;
- return `http://${location.hostname}:${frontPort}/preview/${lang}/${segment}/${encodeURIComponent(record.id)}/`;
+ return `${location.protocol}//${location.hostname}:${frontPort}/${rest}`;
 }
 function openPreview(record,lang='zh'){if(!record?.id)return;window.open(previewURL(record,lang),'_blank','noopener');}
 async function previewEditing(){
