@@ -63,7 +63,7 @@ html:not(:lang(zh)) .home-motto p{font-size:20px;letter-spacing:0}
 .home-about{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:64px;align-items:center}
 .home-about-copy h2{margin:14px 0 22px;font-size:clamp(28px,3vw,40px);text-wrap:balance}
 .home-about-copy>p:not(.eyebrow){margin-bottom:18px;font-size:16.5px;line-height:1.85;color:var(--muted)}
-.home-about-copy>p.home-about-quote{margin-bottom:28px;font-weight:700;color:var(--text)}
+.home-about-copy>p.home-about-quote{margin:0 0 22px;color:var(--red);font-size:20px;font-weight:500;line-height:1.65;text-wrap:pretty}
 .home-about-copy .button.outline{min-height:48px;padding:0 24px;border-color:var(--red);background:transparent}
 .home-about-copy .button.outline:hover{background:var(--red);color:#fff}
 .home-facts{display:grid;gap:16px;margin:0}
@@ -196,6 +196,7 @@ html:not(:lang(zh)) .home-facts dt{letter-spacing:.02em}
   .v2-dark .home-head>p{margin-top:14px}
   .home-head h2,.home-about-copy h2,.home-faq .faq-layout h2{font-size:28px}
   .home-head>div>p:not(.eyebrow){font-size:15.5px}
+  .home-about-copy>p.home-about-quote{font-size:18px;line-height:1.7}
   .home-hero-grid{padding:calc(var(--header-h) + 36px) 0 64px}
   .home-hero:after{top:-140px;right:-160px;width:380px;height:380px}
   .home-hero h1{font-size:38px}
