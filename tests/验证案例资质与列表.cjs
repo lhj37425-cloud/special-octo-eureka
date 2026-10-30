@@ -4,7 +4,7 @@ const assert=require('assert/strict'),fs=require('fs'),os=require('os'),path=req
 let chromium;
 try { ({ chromium } = require('D:/项目/node_modules/playwright')); } catch { console.error('缺少 Playwright：D:/项目/node_modules/playwright'); process.exit(1); }
 const chrome='C:/Program Files/Google/Chrome/Application/chrome.exe';
-const photo='D:/项目/public/team/zheng-yi.jpg';
+const photo=path.join(__dirname,'素材','测试专家照片.jpg');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'evol-case-test-'));
 process.env.ADMIN_DATA_DIR=temp;process.env.MVP_DATA_DIR=temp;
 const core=require('../后台服务.cjs');

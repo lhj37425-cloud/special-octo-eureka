@@ -6,7 +6,7 @@ let chromium;
 try { ({ chromium } = require('D:/项目/node_modules/playwright')); } catch { console.error('缺少 Playwright：D:/项目/node_modules/playwright'); process.exit(1); }
 const chrome='C:/Program Files/Google/Chrome/Application/chrome.exe';
 assert.ok(fs.existsSync(chrome),'找不到本机 Chrome：'+chrome);
-const photo='D:/项目/public/team/zheng-yi.jpg';
+const photo=path.join(__dirname,'素材','测试专家照片.jpg');
 assert.ok(fs.existsSync(photo),'找不到测试照片：'+photo);
 const videoFixture=path.join(__dirname,'素材','测试视频.mp4');
 assert.ok(fs.existsSync(videoFixture),'找不到测试视频');
