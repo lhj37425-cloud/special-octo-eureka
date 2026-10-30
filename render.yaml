@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: evol-dream-demo
+    runtime: node
+    plan: free
+    branch: deploy-demo-render
+    buildCommand: "npm install --omit=dev"
+    startCommand: "node server.js"
+    healthCheckPath: /vi/
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: MVP_DATA_DIR
+        value: /opt/render/project/src/demo-data
+      - key: ADMIN_DATA_DIR
+        value: /opt/render/project/src/demo-data/admin-backend
+      - key: NODE_VERSION
+        value: "22"
