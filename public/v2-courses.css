@@ -151,7 +151,7 @@
 .v2-group{padding:0;background:var(--paper)}
 .v2-group+.v2-group{padding-top:24px}
 .page-hero+.v2-group{padding-top:72px}
-.v2-group:last-child,.v2-group:has(+.v2-cta){padding-bottom:72px} /* 2026-10-30：姓名加英文名后越南语列表略高，88→72，保证一屏 */
+.v2-group:last-child,.v2-group:has(+.v2-cta){padding-bottom:52px} /* 2026-10-30：姓名加英文名后专家列表略高，88→52，保证 1366 宽一屏 */
 /* 只给读屏软件读的标题 */
 .v2-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .v2-lead-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
