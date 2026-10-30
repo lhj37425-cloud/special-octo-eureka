@@ -14,7 +14,7 @@ console.log('字数算法算例验证通过');
 // —— 栏位表结构 ——
 assert.deepEqual(Object.keys(schema.TYPES).sort(),[...core.types].sort(),'栏位表四类内容与后台类型一致');
 const empty=schema.emptyDraft('courses');
-assert.deepEqual(Object.keys(empty.shared),['image','category','experts','factLabels','clips','attachments']);
+assert.deepEqual(Object.keys(empty.shared),['image','category','experts','factLabels']);
 assert.ok(empty.zh.name===''&&Array.isArray(empty.zh.outcomes)&&empty.vi.name===''&&empty.en.name==='');
 console.log('栏位表结构验证通过');
 
@@ -57,11 +57,11 @@ const courseOld=core.saveRecord({type:'courses',experts:[expert.id],draft:{zh:{n
 assert.ok(courseOld.draft.shared.category,'旧分类名自动登记为选项（K2）');
 const catId=courseOld.draft.shared.category;
 assert.equal(courseOld.draft.shared.image.id,'cover.png','旧图片推导为共用封面');
-assert.deepEqual(courseOld.draft.shared.clips.map(c=>c.video.id),['v.mp4'],'旧片段合并进共用区');
-assert.equal(courseOld.draft.zh.clipTitles[0],'开场');
-assert.deepEqual(courseOld.draft.shared.attachments[0].langs,['zh'],'旧附件按语言归入共用区');
+assert.deepEqual(courseOld.draft.zh.clips.map(c=>c.video.id),['v.mp4'],'旧中文片段进入中文语言区');
+assert.equal(courseOld.draft.zh.clips[0].title,'开场');
+assert.equal(courseOld.draft.zh.attachments[0].id,'a.pdf','旧附件进入中文语言区');
 assert.equal(courseOld.draft.zh.category,'AIGC 课程','双写回旧栏位（K1）');
-assert.equal(courseOld.draft.vi.clips[0].video.id,'v.mp4','共用视频对其他语言可见');
+assert.equal(courseOld.draft.vi.clips.length,0,'片段不再复制到其他语言');
 console.log('课程旧数据兼容与双写验证通过');
 
 // —— 发布成功 + 三语显示报告 ——

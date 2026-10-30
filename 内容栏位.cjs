@@ -42,8 +42,6 @@ const TYPES = {
       { key: 'category', label: '分类', type: 'select', options: 'courseCategories', required: true, usedIn: '卡片角标、列表页筛选' },
       { key: 'experts', label: '授课专家', type: 'experts', required: true, minItems: 1, maxItems: 6, usedIn: '列表卡显示主讲；详情页显示全部；专家详情页自动列出这门课' },
       { key: 'factLabels', label: '课程信息（名称）', type: 'factLabels', options: 'courseFacts', required: false, maxItems: 4, usedIn: '详情页首屏' },
-      { key: 'clips', label: '学习预览片段', type: 'clips', required: false, suggestItems: 6, usedIn: '详情页“学习预览”' },
-      { key: 'attachments', label: '资料附件', type: 'files', required: false, usedIn: '详情页课程大纲下面' },
     ],
     lang: [
       { key: 'name', label: '课程名', type: 'line', required: true, max: 30, usedIn: '列表卡、详情页' },
@@ -53,8 +51,8 @@ const TYPES = {
       { key: 'factValues', label: '课程信息（内容）', type: 'list', required: false, align: 'factLabels', suggest: 12, max: 16, usedIn: '详情页首屏' },
       { key: 'outline', label: '课程大纲', type: 'list', required: true, minItems: 1, suggestItems: [4, 12], suggest: 30, max: 40, usedIn: '详情页“课程大纲”，多于 8 条分两列' },
       { key: 'outcomes', label: '学完你能做到', type: 'outcomes', required: false, maxItems: 3, titleMax: 8, textMax: 40, usedIn: '详情页“学完你能做到”，0 条时整块不显示' },
-      { key: 'clipTitles', label: '片段标题', type: 'list', required: false, align: 'clips', max: 20, usedIn: '详情页“学习预览”' },
-      { key: 'attachmentNames', label: '附件显示名称', type: 'list', required: false, align: 'attachments', max: 30, usedIn: '详情页（不填显示文件名）' },
+      { key: 'clips', label: '学习预览片段', type: 'clips', required: false, suggestItems: 6, usedIn: '详情页“学习预览”；每种语言单独上传' },
+      { key: 'attachments', label: '资料附件', type: 'files', required: false, usedIn: '详情页课程大纲下面；每种语言单独上传' },
     ],
   },
   cases: {
@@ -134,7 +132,7 @@ function emptyDraft(type) {
   for (const f of TYPES[type].shared) shared[f.key] = f.type === 'check' ? false : f.type === 'select' ? '' : f.type === 'image' ? null : [];
   for (const lang of LANGS) {
     const v = {};
-    for (const f of TYPES[type].lang) v[f.key] = f.type === 'list' || f.type === 'outcomes' ? [] : '';
+    for (const f of TYPES[type].lang) v[f.key] = ['list', 'outcomes', 'clips', 'files'].includes(f.type) ? [] : '';
     draft[lang] = v;
   }
   return draft;
@@ -146,41 +144,37 @@ const asList = value => Array.isArray(value) ? value.map(x => String(x ?? '')) :
 function normalizeDraft(type, draft) {
   const empty = emptyDraft(type), out = { shared: { ...empty.shared, ...(draft?.shared || {}) } };
   const legacy = lang => draft?.[lang] || {};
+  const sharedClips = Array.isArray(draft?.shared?.clips) ? draft.shared.clips : [];
+  const sharedAtts = Array.isArray(draft?.shared?.attachments) ? draft.shared.attachments : [];
   for (const lang of LANGS) {
     const old = legacy(lang), v = { ...old, ...empty[lang] }; // 旧栏位一律保留（K1）
     for (const f of TYPES[type].lang) {
       const value = old[f.key];
       if (f.type === 'list') v[f.key] = value !== undefined ? asList(value) : asList(old[legacyOf(type, f.key)]);
       else if (f.type === 'outcomes') v[f.key] = Array.isArray(value) ? value : [];
-      else v[f.key] = value !== undefined ? String(value ?? '') : String(old[legacyOf(type, f.key)] ?? '');
+      else if (f.type === 'clips') {
+        const list = Array.isArray(value) ? value : [];
+        v[f.key] = list.filter(c => c && c.video).map(c => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0, title: String(c.title || '') }));
+        // 旧共用片段只回填中文，避免把中文视频当成越/英版本
+        if (!v[f.key].length && lang === 'zh' && sharedClips.length) {
+          v[f.key] = sharedClips.filter(c => c && c.video).map((c, i) => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0, title: String((old.clipTitles || [])[i] || '') }));
+        }
+      } else if (f.type === 'files') {
+        const list = Array.isArray(value) ? value : [];
+        v[f.key] = list.map(a => {
+          const file = a?.file?.id ? a.file : a;
+          return file?.id ? { ...file, displayName: String(a.displayName || file.displayName || '') } : null;
+        }).filter(Boolean);
+        // 旧共用附件按原来的语言勾选拆回各语言
+        if (!v[f.key].length && sharedAtts.length) {
+          v[f.key] = sharedAtts.filter(a => (a.langs || LANGS).includes(lang)).map((a, i) => ({ ...a.file, displayName: String((old.attachmentNames || [])[i] || '') }));
+        }
+      } else v[f.key] = value !== undefined ? String(value ?? '') : String(old[legacyOf(type, f.key)] ?? '');
     }
     out[lang] = v;
   }
   // 共用区缺省时从旧栏位推导
   if (!out.shared.image) out.shared.image = legacy('zh').image || legacy('vi').image || legacy('en').image || null;
-  if (!Array.isArray(out.shared.clips)) out.shared.clips = [];
-  if (!out.shared.clips.length && Array.isArray(legacy('zh').clips)) {
-    out.shared.clips = legacy('zh').clips.filter(c => c && c.video).map(c => ({ video: c.video || null, cover: c.cover || null, duration: c.duration || 0 }));
-    for (const lang of LANGS) out[lang].clipTitles = (legacy(lang).clips || []).map(c => String(c?.title || ''));
-  }
-  if (!Array.isArray(out.shared.attachments)) out.shared.attachments = [];
-  if (!out.shared.attachments.length) {
-    const byId = new Map();
-    for (const lang of LANGS) for (const a of legacy(lang).attachments || []) {
-      if (!a) continue;
-      const entry = byId.get(a.id) || { file: a, langs: [] };
-      if (!entry.langs.includes(lang)) entry.langs.push(lang);
-      byId.set(a.id, entry);
-    }
-    out.shared.attachments = [...byId.values()];
-    for (const lang of LANGS) {
-      const names = legacy(lang).attachmentNames;
-      out[lang].attachmentNames = Array.isArray(names) && names.length ? asList(names) : out.shared.attachments.map(a => {
-        const old = (legacy(lang).attachments || []).find(x => x && x.id === a.file.id);
-        return String(old?.displayName || '');
-      });
-    }
-  }
   if (type === 'experts') {
     for (const lang of LANGS) {
       if (!out[lang].identity) out[lang].identity = String(legacy(lang).role || '');
@@ -188,6 +182,9 @@ function normalizeDraft(type, draft) {
     }
   }
   if (type === 'courses' && !out.shared.category) out.shared.category = ''; // 旧分类名在 normalizeRecord 里按名称对到选项
+  // 片段、附件已经改为分语言；旧共用字段不再保留
+  delete out.shared.clips;
+  delete out.shared.attachments;
   return out;
 }
 // 新栏位没有自己的键时，读哪个旧栏位（迁移用）
@@ -268,8 +265,7 @@ function dualWrite(type, draft, options) {
     if (type === 'courses') {
       const names = optionName(shared.category);
       legacy.category = names ? names[lang] || '' : '';
-      legacy.clips = (shared.clips || []).map((c, i) => ({ title: asList(v.clipTitles)[i] || '', video: c.video || null, cover: c.cover || null }));
-      legacy.attachments = (shared.attachments || []).filter(a => (a.langs || []).includes(lang)).map((a, i) => ({ ...(a.file || {}), displayName: asList(v.attachmentNames)[(shared.attachments || []).indexOf(a)] || '' }));
+      // clips / attachments 已经是分语言的旧格式，双写时保持原样，不覆盖
     }
     out[lang] = legacy;
   }

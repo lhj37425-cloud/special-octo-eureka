@@ -117,7 +117,7 @@ export function ensureDraft(record, schema, options = null) {
   for (const lang of schema.LANGS) {
     const v = record.draft[lang] = record.draft[lang] || {};
     for (const f of T.lang) {
-      if (v[f.key] === undefined) v[f.key] = f.type === 'list' || f.type === 'outcomes' ? [] : '';
+      if (v[f.key] === undefined) v[f.key] = ['list', 'outcomes', 'clips', 'files'].includes(f.type) ? [] : '';
       else if (f.type === 'list' && !Array.isArray(v[f.key])) v[f.key] = asList(v[f.key]);
       else if (f.type === 'outcomes' && !Array.isArray(v[f.key])) v[f.key] = [];
     }
@@ -129,28 +129,23 @@ export function ensureDraft(record, schema, options = null) {
   // 旧记录还没有共用区：从旧的语言栏位推导（与服务端 normalizeDraft 一致，保存后正式写入）
   if (!shared.image) for (const lang of schema.LANGS) { const image = record.draft[lang]?.image; if (image) { shared.image = image; break; } }
   if (record.type === 'courses') {
-    if (!shared.clips.length) {
-      const oldClips = Array.isArray(record.draft.zh?.clips) ? record.draft.zh.clips : [];
-      if (oldClips.length) {
-        shared.clips = oldClips.filter(c => c && c.video).map(c => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0 }));
-        for (const lang of schema.LANGS) if (!record.draft[lang].clipTitles.length) record.draft[lang].clipTitles = (record.draft[lang]?.clips || []).map(c => String(c?.title || ''));
+    const oldClips = Array.isArray(shared.clips) ? shared.clips.filter(c => c && c.video) : [];
+    const oldAtts = Array.isArray(shared.attachments) ? shared.attachments : [];
+    for (const lang of schema.LANGS) {
+      const v = record.draft[lang];
+      if (!Array.isArray(v.clips) || !v.clips.length) {
+        if (lang === 'zh' && oldClips.length) v.clips = oldClips.map((c, i) => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0, title: String((v.clipTitles || [])[i] || '') }));
       }
-    }
-    if (!shared.attachments.length) {
-      const byId = new Map();
-      for (const lang of schema.LANGS) for (const item of record.draft[lang]?.attachments || []) {
-        const file = item?.file?.id ? item.file : item?.id ? item : null;
-        if (!file?.id) continue;
-        const entry = byId.get(file.id) || { file, langs: [] };
-        if (!entry.langs.includes(lang)) entry.langs.push(lang);
-        byId.set(file.id, entry);
+      if (!Array.isArray(v.attachments) || !v.attachments.length) {
+        const atts = oldAtts.filter(a => (a.langs || schema.LANGS).includes(lang));
+        if (atts.length) v.attachments = atts.map((a, i) => ({ ...(a.file || a), displayName: String((v.attachmentNames || [])[i] || '') }));
       }
-      shared.attachments = [...byId.values()];
-      for (const lang of schema.LANGS) if (!record.draft[lang].attachmentNames.length) record.draft[lang].attachmentNames = shared.attachments.map(item => {
-        const old = (record.draft[lang]?.attachments || []).find(a => (a.file?.id || a.id) === item.file.id);
-        return String(old?.displayName || '');
-      });
+      if (Array.isArray(v.clips)) v.clips = v.clips.map(c => ({ video: c?.video || null, cover: c?.cover || null, duration: Number(c?.duration) || 0, title: String(c?.title || '') }));
+      if (Array.isArray(v.attachments)) v.attachments = v.attachments.filter(a => a && (a.file?.id || a.id)).map(a => { const file = a.file?.id ? a.file : a; return { ...file, displayName: String(a.displayName || file.displayName || '') }; });
     }
+    // 片段、附件已改为分语言；旧共用字段不再保留
+    delete shared.clips;
+    delete shared.attachments;
     if (!shared.category) {
       const name = String(record.draft.zh?.category || record.draft.vi?.category || record.draft.en?.category || '').trim();
       const option = (options?.courseCategories || []).find(o => o.zh === name);
@@ -256,12 +251,13 @@ function renderExpertPicker(record, records, ui) {
   </div>`;
 }
 
-function renderClips(record, ui) {
-  const clips = record.draft.shared.clips || [];
-  return `<div class="efield"><label>学习预览片段</label>
-    <p class="used">每个片段：视频必传，封面选填（不选用第 1 秒画面）；建议不超过 6 个。</p>
+function renderClips(record, tab, ui) {
+  const clips = record.draft[tab]?.clips || [];
+  return `<div class="efield"><label>学习预览片段（${LANG_NAME[tab]}）</label>
+    <p class="used">当前语言的片段单独上传，每种语言可以不一样。每个片段：视频必传，封面选填（不选用第 1 秒画面）；建议不超过 6 个。</p>
     ${clips.map((clip, i) => `<div class="clip-card">
       <div class="clip-head"><strong class="small">片段 ${i + 1}</strong><div class="row">${btn('↑', `clip-up:${i}`, 'text-btn mini')}${btn('↓', `clip-down:${i}`, 'text-btn mini')}${btn('删除', `clip-remove:${i}`, 'text-btn danger-link')}</div></div>
+      <div class="elist-row"><input data-clip-title="${i}" value="${esc(clip.title || '')}" placeholder="片段标题"><span class="ecount">${count(clip.title || '')} / 20</span></div>
       <div class="clip-media">
         ${clip.video ? `<div><video controls preload="metadata" src="${ui.mediaURL(clip.video)}" ${clip.cover ? `poster="${ui.mediaURL(clip.cover)}"` : ''}></video><div class="clip-meta" data-clip-duration="${i}">${clip.duration || clip.video.duration || 0} 秒 · ${clip.video.width || 0}×${clip.video.height || 0} · ${(clip.video.size / 1048576).toFixed(1)} MB</div></div>` : `<div class="se-placeholder is-wide">${ui.icon('upload')}<span>尚未上传视频</span></div>`}
         ${clip.cover ? `<img src="${ui.mediaURL(clip.cover)}" alt="片段 ${i + 1} 封面">` : ''}
@@ -279,11 +275,11 @@ function renderClips(record, ui) {
   </div>`;
 }
 
-function renderAttachments(record, ui) {
-  const files = record.draft.shared.attachments || [];
-  return `<div class="efield"><label>资料附件</label>
-    <p class="used">PDF / DOCX / XLSX / PPTX · 单个不超过 30MB；每个附件勾选在哪几种语言显示。</p>
-    ${files.map((item, i) => `<div class="attach-row">${ui.icon('file')}<span class="name" title="${esc(item.file?.name)}">${esc(item.file?.name || '附件')}</span><small>${((item.file?.size || 0) / 1048576).toFixed(1)} MB</small><span class="attach-langs">${['zh', 'vi', 'en'].map(lang => `<label><input type="checkbox" data-attachment-lang="${i}:${lang}" ${(item.langs || []).includes(lang) ? 'checked' : ''}> ${lang.toUpperCase()}</label>`).join('')}</span>${btn('移除', `attach-remove:${i}`, 'text-btn danger-link')}</div>`).join('') || '<div class="small muted">尚未添加附件</div>'}
+function renderAttachments(record, tab, ui) {
+  const files = record.draft[tab]?.attachments || [];
+  return `<div class="efield"><label>资料附件（${LANG_NAME[tab]}）</label>
+    <p class="used">当前语言的附件单独上传，每种语言可以不一样。PDF / DOCX / XLSX / PPTX · 单个不超过 30MB。</p>
+    ${files.map((item, i) => `<div class="attach-row">${ui.icon('file')}<span class="name" title="${esc(item.name)}">${esc(item.name || '附件')}</span><small>${((item.size || 0) / 1048576).toFixed(1)} MB</small><input data-attachment-name="${i}" value="${esc(item.displayName || item.name || '')}" placeholder="显示名称" style="min-width:0;flex:1">${btn('移除', `attach-remove:${i}`, 'text-btn danger-link')}</div>`).join('') || '<div class="small muted">尚未添加附件</div>'}
     ${btn('+ 添加附件', 'attach-add', '', 'style="width:100%;border-style:dashed"')}
     <input type="file" hidden data-editor-file="attachment" accept=".pdf,.docx,.xlsx,.pptx">
   </div>`;
@@ -292,7 +288,7 @@ function renderAttachments(record, ui) {
 function renderSharedCourse(record, options, records, ui) {
   const shared = record.draft.shared;
   const categories = options?.courseCategories || [], facts = options?.courseFacts || [];
-  return `<section class="se-block"><h3>① 共用（三种语言一样）</h3><p class="se-sub">封面、分类、授课专家、片段和附件只填一次，三种语言共用。</p>
+  return `<section class="se-block"><h3>① 共用（三种语言一样）</h3><p class="se-sub">封面、分类、授课专家、课程信息名称只填一次，三种语言共用；片段和附件在每种语言里单独上传。</p>
     <div class="se-grid">
       ${renderImageField(record, 'image', { preset: 'course', wide: true, label: '封面', required: true, ui })}
       <div class="efield"><label>分类<span class="req">*</span></label>
@@ -306,8 +302,6 @@ function renderSharedCourse(record, options, records, ui) {
       <div class="se-actions">${facts.map(o => `<label class="selection"><input type="checkbox" data-fact-check="${esc(o.id)}" ${(shared.factLabels || []).includes(o.id) ? 'checked' : ''} ${!(shared.factLabels || []).includes(o.id) && (shared.factLabels || []).length >= 4 ? 'disabled' : ''}> ${esc(o.zh)}${o.disabled ? '（停用）' : ''}</label>`).join('') || '<span class="help">还没有课程信息名称，请先到“选项设置”添加。</span>'}</div>
       <p class="used">最多 4 条；具体内容在下面每种语言里分别填。</p>
     </div>
-    ${renderClips(record, ui)}
-    ${renderAttachments(record, ui)}
   </section>`;
 }
 
@@ -369,16 +363,8 @@ function renderLangField(record, tab, field, options, ui) {
     if (!labels.length) return `<div class="efield"><label>${field.label}</label><p class="used">先在共用区选择“课程信息（名称）”。</p></div>`;
     return renderListField(record, tab, field, ui, { labels });
   }
-  if (field.key === 'clipTitles') {
-    const clips = record.draft.shared.clips || [];
-    if (!clips.length) return `<div class="efield"><label>${field.label}</label><p class="used">先在共用区添加学习预览片段。</p></div>`;
-    return renderListField(record, tab, field, ui, { labels: clips.map((_, i) => `片段 ${i + 1}`), addLabel: '补一条标题' });
-  }
-  if (field.key === 'attachmentNames') {
-    const files = record.draft.shared.attachments || [];
-    if (!files.length) return `<div class="efield"><label>${field.label}</label><p class="used">先在共用区添加资料附件。</p></div>`;
-    return renderListField(record, tab, field, ui, { labels: files.map(a => a.file?.name || '附件'), addLabel: '补一条名称' });
-  }
+  if (field.type === 'clips') return renderClips(record, tab, ui);
+  if (field.type === 'files') return renderAttachments(record, tab, ui);
   if (field.type === 'list') return renderListField(record, tab, field, ui);
   if (field.type === 'outcomes') return renderOutcomes(record, tab, field);
   const value = String(v[field.key] ?? ''), zhValue = String(zh[field.key] ?? '');
@@ -494,11 +480,8 @@ export function bindEditor(ctx) {
     for (const el of document.querySelectorAll('[data-shared-check]')) record.draft.shared[el.dataset.sharedCheck] = el.checked;
     for (const el of document.querySelectorAll('[data-shared-select]')) record.draft.shared[el.dataset.sharedSelect] = el.value;
     for (const el of document.querySelectorAll('[data-featured]')) record.featured = el.checked;
-    for (const el of document.querySelectorAll('[data-attachment-lang]')) {
-      const [index, lang] = el.dataset.attachmentLang.split(':'); const item = record.draft.shared.attachments[Number(index)];
-      if (!item) continue; const langs = new Set(item.langs || []);
-      if (el.checked) langs.add(lang); else langs.delete(lang); item.langs = [...langs];
-    }
+    for (const el of document.querySelectorAll('[data-clip-title]')) { const c = record.draft[tab].clips?.[Number(el.dataset.clipTitle)]; if (c) c.title = el.value; }
+    for (const el of document.querySelectorAll('[data-attachment-name]')) { const a = record.draft[tab].attachments?.[Number(el.dataset.attachmentName)]; if (a) a.displayName = el.value; }
   }
   window.__editorSync = syncInputs;
 
@@ -506,6 +489,8 @@ export function bindEditor(ctx) {
   for (const el of document.querySelectorAll('[data-lang-list]')) el.oninput = () => { listOf(el.dataset.langList)[Number(el.dataset.index)] = el.value; refresh(); };
   for (const el of document.querySelectorAll('[data-outcome-title]')) el.oninput = () => { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] || {}; item.title = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeTitle)] = item; refresh(); };
   for (const el of document.querySelectorAll('[data-outcome-text]')) el.oninput = () => { const item = record.draft[tab].outcomes[Number(el.dataset.outcomeText)] || {}; item.text = el.value; record.draft[tab].outcomes[Number(el.dataset.outcomeText)] = item; refresh(); };
+  for (const el of document.querySelectorAll('[data-clip-title]')) el.oninput = () => { const c = record.draft[tab].clips?.[Number(el.dataset.clipTitle)]; if (c) { c.title = el.value; refresh(); } };
+  for (const el of document.querySelectorAll('[data-attachment-name]')) el.oninput = () => { const a = record.draft[tab].attachments?.[Number(el.dataset.attachmentName)]; if (a) { a.displayName = el.value; refresh(); } };
   for (const el of document.querySelectorAll('[data-shared-check]')) el.onchange = () => { record.draft.shared[el.dataset.sharedCheck] = el.checked; ctx.rerender(); };
   for (const el of document.querySelectorAll('[data-featured]')) el.onchange = () => { record.featured = el.checked; if (ctx.onChange) ctx.onChange(); };
   for (const el of document.querySelectorAll('[data-shared-select]')) el.onchange = () => { record.draft.shared[el.dataset.sharedSelect] = el.value; refresh(); };
@@ -522,14 +507,6 @@ export function bindEditor(ctx) {
     else ids = ids.filter(x => x !== id);
     record.draft.shared.experts = ids; record.experts = ids;
     ctx.rerender();
-  };
-  for (const el of document.querySelectorAll('[data-attachment-lang]')) el.onchange = () => {
-    const [index, lang] = el.dataset.attachmentLang.split(':'); const item = record.draft.shared.attachments[Number(index)];
-    if (!item) return; const langs = new Set(item.langs || []);
-    if (el.checked) langs.add(lang); else langs.delete(lang);
-    if (!langs.size) { el.checked = true; ctx.toast('附件至少勾选一种显示语言。'); return; }
-    item.langs = [...langs];
-    if (ctx.onChange) ctx.onChange();
   };
   const search = document.querySelector('[data-expert-search]');
   if (search) search.oninput = () => { const q = search.value.trim().toLowerCase(); for (const label of document.querySelectorAll('.expert-options label')) label.style.display = !q || label.textContent.toLowerCase().includes(q) ? '' : 'none'; };
@@ -588,20 +565,21 @@ export function bindEditor(ctx) {
         const video = await uploadMedia(prepared.file, { name: prepared.file.name, onProgress: p => setStatus(`正在上传视频 ${p}%`) });
         let cover = null;
         if (prepared.cover) { try { cover = await uploadMedia(prepared.cover.blob, { name: '片段封面.jpg' }); } catch { } }
-        const clip = record.draft.shared.clips[clipIndex] || {};
-        clip.video = video; clip.cover = cover || clip.cover || null; clip.duration = video.duration || prepared.meta.duration || 0;
-        record.draft.shared.clips[clipIndex] = clip;
+        const clips = record.draft[tab].clips = Array.isArray(record.draft[tab].clips) ? record.draft[tab].clips : [];
+        const clip = clips[clipIndex] || {};
+        clip.video = video; clip.cover = cover || clip.cover || null; clip.duration = video.duration || prepared.meta.duration || 0; clip.title = String(clip.title || '');
+        clips[clipIndex] = clip;
         setStatus(''); ctx.toast('视频已上传，点击保存草稿后写入内容'); syncInputs(); ctx.rerender();
       } else if (field === 'clip-cover') {
         const prepared = await prepareCoverImage(file); if (!prepared) return;
         const cover = await uploadMedia(prepared.file, { name: prepared.name, onProgress: p => setStatus(`正在上传封面 ${p}%`) });
-        record.draft.shared.clips[clipIndex].cover = cover;
+        record.draft[tab].clips[clipIndex].cover = cover;
         setStatus(''); ctx.toast('封面已上传'); syncInputs(); ctx.rerender();
       } else if (field === 'attachment') {
         const check = validateMediaFile(file, 'attachment'); if (!check.ok) { ctx.toast(check.error); return; }
         setStatus('正在上传附件…');
         const saved = await uploadMedia(file, { name: file.name, onProgress: p => setStatus(`正在上传附件 ${p}%`) });
-        record.draft.shared.attachments.push({ file: saved, langs: ['zh', 'vi', 'en'] });
+        record.draft[tab].attachments.push({ ...saved, displayName: '' });
         setStatus(''); ctx.toast('附件已上传，点击保存草稿后写入内容'); syncInputs(); ctx.rerender();
       }
     } catch (error) {
@@ -612,7 +590,7 @@ export function bindEditor(ctx) {
 
   // 旧上传片段没有记时长：在后台页面里读一次视频元数据，保存草稿时一起写入
   if (record.type === 'courses') {
-    for (const [index, clip] of (record.draft.shared.clips || []).entries()) {
+    for (const [index, clip] of (record.draft[tab].clips || []).entries()) {
       if (!clip.video?.id || Number(clip.duration) > 0) continue;
       const probe = document.createElement('video');
       probe.preload = 'metadata';
@@ -628,7 +606,7 @@ export function bindEditor(ctx) {
   }
 
   async function useFrame(index) {
-    const clip = record.draft.shared.clips[index];
+    const clip = record.draft[tab].clips[index];
     if (!clip?.video) return;
     const time = Number(document.querySelector(`[data-frame-time="${index}"]`)?.value || 1);
     setStatus('正在截取视频画面…');
@@ -666,16 +644,16 @@ export function bindEditor(ctx) {
     }
     if (act === 'outcome-add') { const arr = record.draft[tab].outcomes = Array.isArray(record.draft[tab].outcomes) ? record.draft[tab].outcomes : []; if (arr.length < 3) arr.push({ title: '', text: '' }); ctx.rerender(); return; }
     if (act === 'outcome-del') { record.draft[tab].outcomes.splice(Number(a), 1); ctx.rerender(); return; }
-    if (act === 'clip-add') { record.draft.shared.clips.push({ video: null, cover: null, duration: 0 }); ctx.rerender(); return; }
-    if (act === 'clip-remove') { record.draft.shared.clips.splice(Number(a), 1); ctx.rerender(); return; }
+    if (act === 'clip-add') { const clips = record.draft[tab].clips = Array.isArray(record.draft[tab].clips) ? record.draft[tab].clips : []; clips.push({ video: null, cover: null, duration: 0, title: '' }); ctx.rerender(); return; }
+    if (act === 'clip-remove') { record.draft[tab].clips.splice(Number(a), 1); ctx.rerender(); return; }
     if (act === 'clip-up' || act === 'clip-down') {
-      const clips = record.draft.shared.clips, i = Number(a), j = act === 'clip-up' ? i - 1 : i + 1;
+      const clips = record.draft[tab].clips, i = Number(a), j = act === 'clip-up' ? i - 1 : i + 1;
       if (j >= 0 && j < clips.length) [clips[i], clips[j]] = [clips[j], clips[i]];
       ctx.rerender(); return;
     }
     if (act === 'clip-frame') { await useFrame(Number(a)); return; }
     if (act === 'attach-add') { fileInput('attachment')?.click(); return; }
-    if (act === 'attach-remove') { record.draft.shared.attachments.splice(Number(a), 1); ctx.rerender(); return; }
+    if (act === 'attach-remove') { record.draft[tab].attachments.splice(Number(a), 1); ctx.rerender(); return; }
     if (act === 'expert-up' || act === 'expert-down' || act === 'expert-remove') {
       const ids = [...(record.draft.shared.experts || [])], i = Number(a);
       if (act === 'expert-remove') ids.splice(i, 1);

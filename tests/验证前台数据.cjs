@@ -10,6 +10,7 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
 const image=name=>core.file(name,png,'image/png');
 const videoFile=core.file('片段.mp4',fs.readFileSync(path.join(__dirname,'素材','测试视频.mp4')));
 const pdf=core.file('讲义.pdf',Buffer.from('%PDF-1.4\n% test\n'));
+const pdfVi=core.file('越南讲义.pdf',Buffer.from('%PDF-1.4\n% vi\n'));
 const expert=(name,{big=false,vi=false}={})=>{
  const draft={shared:{bigCard:big,image:image(name+'.png')},zh:{name,identity:'顾问',tagline:'一句话介绍',highlights:['亮点一'],bio:'第一段\n\n第二段',experience:['经历一']}};
  if(vi)draft.vi={name:name+' VI',identity:'Cố vấn',tagline:'Một câu',highlights:[],bio:'',experience:[]};
@@ -20,9 +21,9 @@ const viExpert=expert('越语专家',{vi:true});
 const small=[viExpert];for(let i=1;i<=4;i++)small.push(expert('小卡'+i));
 // 课程：中文完整，越南语也完整；两位授课专家（大卡一、越语专家），片段中越各一个标题，附件只中文
 const course=core.saveRecord({type:'courses',experts:[big1.id,viExpert.id],draft:{
- shared:{category:'cat-aigc',image:image('课程封面.png'),factLabels:['fact-hours','fact-format'],clips:[{video:videoFile,cover:image('片段封面.png'),duration:5}],attachments:[{file:pdf,langs:['zh']}]},
- zh:{name:'前台验收课程',goals:'学完能独立落地',description:'课程介绍正文',audience:'零基础',outline:['第一章','第二章'],factValues:['54 课时','线上直播'],outcomes:[{title:'能独立落地',text:'完成一个真实任务'}],clipTitles:['中文片段'],attachmentNames:['中文讲义']},
- vi:{name:'Khóa kiểm thử',goals:'Tự tin triển khai',description:'Giới thiệu khóa học',audience:'Người mới',outline:['Chương một','Chương hai'],factValues:['54 giờ','Trực tuyến'],outcomes:[{title:'Tự triển khai',text:'Hoàn thành một nhiệm vụ'}],clipTitles:['Đoạn tiếng Việt'],attachmentNames:['Tài liệu']}
+ shared:{category:'cat-aigc',image:image('课程封面.png'),factLabels:['fact-hours','fact-format']},
+ zh:{name:'前台验收课程',goals:'学完能独立落地',description:'课程介绍正文',audience:'零基础',outline:['第一章','第二章'],factValues:['54 课时','线上直播'],outcomes:[{title:'能独立落地',text:'完成一个真实任务'}],clips:[{video:videoFile,cover:image('片段封面.png'),duration:5,title:'中文片段'}],attachments:[{...pdf,displayName:'中文讲义'}]},
+ vi:{name:'Khóa kiểm thử',goals:'Tự tin triển khai',description:'Giới thiệu khóa học',audience:'Người mới',outline:['Chương một','Chương hai'],factValues:['54 giờ','Trực tuyến'],outcomes:[{title:'Tự triển khai',text:'Hoàn thành một nhiệm vụ'}],clips:[{video:videoFile,cover:image('片段封面.png'),duration:5,title:'Đoạn tiếng Việt'}],attachments:[{...pdfVi,displayName:'Tài liệu'}]}
 }},owner);core.publish(course.id,owner);
 // 案例：两条中文，其中一条有越南语；资质：四条，前两条首页展示
 const caseFields={industry:'制造业',description:'案例简介',problem:'业务问题',steps:'第一步\n第二步',people:'甲、乙',deliverables:'成果一\n成果二'};
@@ -73,7 +74,7 @@ const data4=frontData.content();const page4=render('zh','teachers',null,data4,pu
 assert.doesNotMatch(page4,/v2-lead-grid is-single/,'4 位大卡两行各 2 张');
 const legacy={type:'courses',published:{zh:{name:'旧课程',description:'旧简介',goals:'旧目标',audience:'旧对象',outline:'第一章\n第二章',category:'AIGC 课程',image:{id:'old.png'},clips:[{title:'旧片段',video:{id:'old.mp4'},cover:null}],attachments:[]},vi:{},en:{}},publishedSettings:{order:9,experts:[]},order:9};
 const legacyDraft=frontData.normalize(legacy);
-assert.equal(legacyDraft.shared.image.id,'old.png');assert.equal(legacyDraft.shared.clips[0].video.id,'old.mp4');
+assert.equal(legacyDraft.shared.image.id,'old.png');assert.equal(legacyDraft.zh.clips[0].video.id,'old.mp4');assert.equal((legacyDraft.vi.clips||[]).length,0,'旧共用片段不再复制到越南语');
 assert.equal(frontData.languageComplete(legacy,legacyDraft,'zh'),true,'旧课程用旧栏位也能显示');
 console.log('4 位大卡排版、旧记录兼容（K2）：通过');
 

@@ -52,7 +52,7 @@ let browser;
  await page.click('[data-editor-action="expert-down:0"]');await page.waitForTimeout(300);
  await page.fill('[data-lang="name"]','界面测试课程');await page.fill('[data-lang="goals"]','目标');await page.fill('[data-lang="description"]','课程介绍');await page.fill('[data-lang="audience"]','零基础');
  await page.click('[data-editor-action="list-add:outline"]');await page.waitForTimeout(200);await page.fill('[data-lang-list="outline"][data-index="0"]','第一章');
- await page.click('[data-editor-action="clip-add"]');await page.waitForTimeout(250);await page.setInputFiles('[data-editor-file="clip-video"][data-clip="0"]',video);await page.waitForSelector('.clip-media video',{timeout:60000});await page.fill('[data-lang-list="clipTitles"][data-index="0"]','开场');
+ await page.click('[data-editor-action="clip-add"]');await page.waitForTimeout(250);await page.setInputFiles('[data-editor-file="clip-video"][data-clip="0"]',video);await page.waitForSelector('.clip-media video',{timeout:60000});await page.fill('[data-clip-title="0"]','开场');
  await page.screenshot({path:path.join(shots,'04-课程表单.png'),fullPage:true});await page.click('[data-action="save"]');await page.waitForTimeout(1200);await publishEditor(page);
  const courseRecord=core.read().records.find(r=>r.type==='courses'&&r.draft?.zh?.name==='界面测试课程');
  assert.match(await (await fetch(front+'/zh/courses/'+courseRecord.id+'/')).text(),/另一位讲师|界面测试讲师/);

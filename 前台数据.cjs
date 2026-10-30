@@ -17,25 +17,6 @@ function normalize(record) {
   const draft = { shared: { ...(p.shared || {}) }, zh: { ...(p.zh || {}) }, vi: { ...(p.vi || {}) }, en: { ...(p.en || {}) } };
   const shared = draft.shared;
   if (!shared.image) for (const lang of LANGS) { const image = draft[lang].image; if (image) { shared.image = image; break; } }
-  if (!Array.isArray(shared.clips) || !shared.clips.length) {
-    const old = LANGS.map(lang => draft[lang].clips || []).find(list => list.length) || [];
-    shared.clips = old.filter(c => c && c.video).map(c => ({ video: c.video || null, cover: c.cover || null, duration: Number(c.duration) || 0 }));
-  } else {
-    shared.clips = shared.clips.filter(c => c && c.video);
-  }
-  if (!Array.isArray(shared.attachments) || !shared.attachments.length) {
-    const byId = new Map();
-    for (const lang of LANGS) for (const item of draft[lang].attachments || []) {
-      const file = item?.file?.id ? item.file : item?.id ? item : null;
-      if (!file?.id) continue;
-      const entry = byId.get(file.id) || { file, langs: [] };
-      if (!entry.langs.includes(lang)) entry.langs.push(lang);
-      byId.set(file.id, entry);
-    }
-    shared.attachments = [...byId.values()];
-  } else {
-    shared.attachments = shared.attachments.filter(item => item && item.file?.id);
-  }
   if (!Array.isArray(shared.experts) || !shared.experts.length) shared.experts = (record.publishedSettings?.experts || record.experts || []).slice(0, 6);
   const options = core.listOptions();
   if (record.type === 'courses') {
@@ -43,14 +24,6 @@ function normalize(record) {
       const name = String(draft.zh.category || draft.vi.category || draft.en.category || '').trim();
       const found = (options.courseCategories || []).find(o => o.zh === name);
       if (found) shared.category = found.id;
-    }
-    for (const lang of LANGS) {
-      const v = draft[lang];
-      if (!Array.isArray(v.clipTitles) || !v.clipTitles.length) v.clipTitles = (draft[lang].clips || []).map(c => String(c?.title || ''));
-      if (!Array.isArray(v.attachmentNames) || !v.attachmentNames.length) v.attachmentNames = shared.attachments.map(item => {
-        const old = (draft[lang].attachments || []).find(a => (a.file?.id || a.id) === item.file.id);
-        return String(old?.displayName || '');
-      });
     }
   }
   if (record.type === 'experts') {
@@ -91,17 +64,22 @@ function courseFields(record, draft, lang, teacherVisible) {
   const factLabels = shared.factLabels || [], factValues = aligned(v.factValues);
   const facts = factLabels.map((id, i) => [optionName(options.courseFacts, id, lang), factValues[i] || '']).filter(([label, value]) => label && value);
   const outcomes = (Array.isArray(v.outcomes) ? v.outcomes : []).map(item => [String(item?.title || ''), String(item?.text || '')]).filter(([title, text]) => title || text);
-  const clipTitles = aligned(v.clipTitles);
-  const videos = (shared.clips || []).map((clip, i) => {
+  const legacyTitles = aligned(v.clipTitles);
+  const langClips = Array.isArray(v.clips) && v.clips.length ? v.clips : (lang === 'zh' && Array.isArray(shared.clips) ? shared.clips : []);
+  const videos = langClips.map((clip, i) => {
     if (!clip?.video?.id) return null;
-    const title = String(clipTitles[i] || '');
+    const title = String(clip.title || legacyTitles[i] || '');
     if (!title.trim()) return null;
     return { name: title, title, url: media(clip.video), poster: media(clip.cover) || media(shared.image), duration: Number(clip.duration || clip.video.duration || 0) };
   }).filter(Boolean);
-  const names = aligned(v.attachmentNames);
-  const materials = (shared.attachments || []).map((item, i) => {
-    if (!item.file?.id || !(item.langs || []).includes(lang)) return null;
-    return { name: names[i] || item.file.name || '', url: media(item.file) };
+  const legacyNames = aligned(v.attachmentNames);
+  const rawAttachments = Array.isArray(v.attachments) && v.attachments.length
+    ? v.attachments
+    : (shared.attachments || []).filter(item => (item.langs || LANGS).includes(lang));
+  const materials = rawAttachments.map((item, i) => {
+    const file = item?.file?.id ? item.file : (item?.id ? item : null);
+    if (!file?.id) return null;
+    return { name: item?.displayName || legacyNames[i] || file.name || '', url: media(file) };
   }).filter(Boolean);
   const teacherIds = (shared.experts || []).filter(id => teacherVisible(id, lang));
   const category = optionName(options.courseCategories, shared.category, lang) || String(v.category || '');
