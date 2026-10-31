@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # 生成交付包：代码包 + 数据包 + SHA256SUMS + 交付清单。
 # 用法：bash 部署/打包.sh [tag] [输出目录]
-# 默认 tag=v1.0-deploy，输出到 部署/发布包/（已在 .gitignore 中忽略）
+# 默认 tag=v1.0.0-prod，输出到 部署/发布包/（已在 .gitignore 中忽略）
 set -eu
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TAG="${1:-v1.0-deploy}"
+TAG="${1:-v1.0.0-prod}"
 OUT="${2:-$ROOT/部署/发布包}"
 STATE="$ROOT/data/admin-backend/state.json"
 UPLOADS="$ROOT/data/admin-backend/uploads"

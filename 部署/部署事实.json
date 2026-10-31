@@ -1,9 +1,9 @@
 {
   "说明": "本文件是部署相关数字、路径、端口的唯一事实源。部署手册（前辈版）与 AI 执行契约都以此为准；任何文档与本文件冲突时，停下来确认，不要自行发挥。",
   "release": {
-    "tag": "v1.0-deploy",
-    "branch": "claude/trusting-shannon-bx9kom",
-    "说明": "以 tag 为准（tag 指向的 commit 即交付代码），不要拉分支最新代码",
+    "tag": "v1.0.0-prod",
+    "branch": "main",
+    "说明": "生产版本：分支已合并进 main，tag v1.0.0-prod 指向 main 的上线提交；部署只认这个 tag 打出的包",
     "打包日期": "2026-10-31"
   },
   "domains": ["www.evoldream.tech", "evoldream.tech"],
@@ -47,8 +47,8 @@
     "S10": "上线后验证脚本全部 PASS，否则不切 DNS / 不宣布上线"
   },
   "交付物": {
-    "代码包": "evol-app-v1.0-deploy.tar.gz",
-    "数据包": "evol-data-v1.0-deploy.tar.gz",
+    "代码包": "evol-app-v1.0.0-prod.tar.gz",
+    "数据包": "evol-data-v1.0.0-prod.tar.gz",
     "校验": "SHA256SUMS（两个包都必须 OK）",
     "数据包说明": "含 state.json（管理员密码哈希）、留言和上传文件；只走加密/可信渠道，不提交仓库"
   },

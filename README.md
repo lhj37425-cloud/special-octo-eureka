@@ -22,8 +22,8 @@
 ## 包内结构
 
 ```text
-evol-app-v1.0-deploy.tar.gz   # 代码（不含 data/node_modules）
-evol-data-v1.0-deploy.tar.gz  # 数据（state.json、留言、上传文件；含真实数据，走加密渠道）
+evol-app-v1.0.0-prod.tar.gz   # 代码（不含 data/node_modules）
+evol-data-v1.0.0-prod.tar.gz  # 数据（state.json、留言、上传文件；含真实数据，走加密渠道）
 SHA256SUMS                    # 两个包的校验和
 README.md                     # 本文件
 部署/                         # 手册、事实文件、预检/验证脚本、AI 清单
