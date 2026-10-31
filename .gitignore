@@ -17,3 +17,8 @@ node_modules/
 
 # WorkBuddy 的本地工作目录
 .workbuddy/
+
+# 交付发布包：里面是真实数据和账号哈希，绝不提交
+部署/发布包/
+部署/*.tar.gz
+部署/SHA256SUMS

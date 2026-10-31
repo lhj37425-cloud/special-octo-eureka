@@ -61,7 +61,7 @@ function failed(req,account){bump(loginAttempts,loginKey(req,account));bump(logi
 // 定期清掉过期的失败记录，Map 不会越积越大
 setInterval(()=>{const now=Date.now();for(const map of [loginAttempts,loginIpAttempts])for(const [k,v] of map)if(now-v.started>attemptWindow)map.delete(k)},10*60*1000).unref();
 const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost'),p=decodeURIComponent(url.pathname);if(p==='/api/status')return json(res,200,{initialized:core.read().users.length>0});
- if(p==='/healthz')return json(res,200,{ok:true});
+ if(p==='/healthz'){try{core.read();return json(res,200,{ok:true})}catch{return json(res,503,{ok:false})}}
  if(p==='/api/setup'&&req.method==='POST'){if(core.read().users.length)return json(res,403,{error:'主管理员已经创建，请直接登录。'});const d=JSON.parse((await body(req)).toString()||'{}');core.initialize(String(d.account||'').trim(),d.password,d.name);const t=await core.loginAsync(String(d.account||'').trim(),d.password);return session(req,res,t,core.auth(t))}
  if(p==='/api/login'&&req.method==='POST'){const d=JSON.parse((await body(req)).toString()||'{}');if(limited(req,d.account))return json(res,429,{error:'登录尝试过多，请 5 分钟后再试。'});const t=await core.loginAsync(d.account,d.password);if(!t){failed(req,d.account);return json(res,401,{error:'账号或密码错误，或账号已停用。'})}loginAttempts.delete(loginKey(req,d.account));loginIpAttempts.delete(deploy.ip(req));return session(req,res,t,core.auth(t))}
  if(p==='/api/logout'&&req.method==='POST'){if(!protectWrite(req,res))return;core.logout(token(req));const flags=cookieFlags(req);return json(res,200,{ok:true},{'Set-Cookie':[`admin_session=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/${flags}`,`admin_csrf=; Max-Age=0; SameSite=Strict; Path=/${flags}`]})}

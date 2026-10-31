@@ -1,6 +1,9 @@
 #!/bin/bash
 # 用一个临时实例模拟 Nginx 反代，验证 P0 修复：真实 IP 限流、Origin 校验、Secure Cookie
 set -u
+# Windows Git Bash 会把 ADMIN_BASE_PATH=/admin/ 改写成 C:/Program Files/Git/admin/，
+# 这里关掉路径转换；Linux 上没有影响。
+export MSYS_NO_PATHCONV=1
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d)"
 FRONT_PORT=4193
