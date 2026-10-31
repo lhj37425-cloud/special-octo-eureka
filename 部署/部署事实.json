@@ -1,9 +1,9 @@
 {
   "说明": "本文件是部署相关数字、路径、端口的唯一事实源。部署手册（前辈版）与 AI 执行契约都以此为准；任何文档与本文件冲突时，停下来确认，不要自行发挥。",
   "release": {
-    "commit": "17e5c37",
-    "branch": "claude/trusting-shannon-bx9kom",
     "tag": "v1.0-deploy",
+    "branch": "claude/trusting-shannon-bx9kom",
+    "说明": "以 tag 为准（tag 指向的 commit 即交付代码），不要拉分支最新代码",
     "打包日期": "2026-10-31"
   },
   "domains": ["www.evoldream.tech", "evoldream.tech"],
