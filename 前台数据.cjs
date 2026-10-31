@@ -12,13 +12,13 @@ const paragraphs = value => String(value ?? '').split(/\r?\n\s*\r?\n/).map(x => 
 const optionName = (list, id, lang) => { const option = (list || []).find(x => x.id === id); return option ? (option[lang] || option.zh || '') : ''; };
 
 // 旧记录没有共用区：从旧的语言栏位推导（与后台 normalizeDraft 相同）；不修改数据文件
-function normalize(record) {
+function normalize(record, options) {
   const p = record.published || {};
   const draft = { shared: { ...(p.shared || {}) }, zh: { ...(p.zh || {}) }, vi: { ...(p.vi || {}) }, en: { ...(p.en || {}) } };
   const shared = draft.shared;
   if (!shared.image) for (const lang of LANGS) { const image = draft[lang].image; if (image) { shared.image = image; break; } }
   if (!Array.isArray(shared.experts) || !shared.experts.length) shared.experts = (record.publishedSettings?.experts || record.experts || []).slice(0, 6);
-  const options = core.listOptions();
+  options = options || core.listOptions();
   if (record.type === 'courses') {
     if (!shared.category) {
       const name = String(draft.zh.category || draft.vi.category || draft.en.category || '').trim();
@@ -59,8 +59,8 @@ function expertFields(record, draft, lang) {
   };
 }
 
-function courseFields(record, draft, lang, teacherVisible) {
-  const v = draft[lang] || {}, shared = draft.shared, options = core.listOptions();
+function courseFields(record, draft, lang, teacherVisible, options) {
+  const v = draft[lang] || {}, shared = draft.shared; options = options || core.listOptions();
   const factLabels = shared.factLabels || [], factValues = aligned(v.factValues);
   const facts = factLabels.map((id, i) => [optionName(options.courseFacts, id, lang), factValues[i] || '']).filter(([label, value]) => label && value);
   const outcomes = (Array.isArray(v.outcomes) ? v.outcomes : []).map(item => [String(item?.title || ''), String(item?.text || '')]).filter(([title, text]) => title || text);
@@ -127,9 +127,10 @@ function readRecords(override = null) {
 }
 
 function content(override = null) {
-  const records = readRecords(override);
+  // 单次请求只读一次选项（原来每条记录、每种语言各读一次 state.json）
+  const records = readRecords(override), options = core.listOptions();
   const teachers = records.filter(r => r.type === 'experts').map(record => {
-    const draft = normalize(record), languages = {}, translations = {};
+    const draft = normalize(record, options), languages = {}, translations = {};
     for (const lang of LANGS) {
       languages[lang] = languageComplete(record, draft, lang);
       if (lang !== 'zh' && languages[lang]) translations[lang] = expertFields(record, draft, lang);
@@ -140,16 +141,16 @@ function content(override = null) {
   const teacherVisible = (id, lang) => !!teacherById.get(id)?.languages?.[lang];
 
   const courses = records.filter(r => r.type === 'courses').map(record => {
-    const draft = normalize(record), languages = {}, translations = {};
+    const draft = normalize(record, options), languages = {}, translations = {};
     for (const lang of LANGS) {
       languages[lang] = languageComplete(record, draft, lang);
-      if (lang !== 'zh' && languages[lang]) translations[lang] = courseFields(record, draft, lang, teacherVisible);
+      if (lang !== 'zh' && languages[lang]) translations[lang] = courseFields(record, draft, lang, teacherVisible, options);
     }
-    return { id: record.id, published: true, languages, translations, ...courseFields(record, draft, 'zh', teacherVisible) };
+    return { id: record.id, published: true, languages, translations, ...courseFields(record, draft, 'zh', teacherVisible, options) };
   }).sort((a, b) => a.order - b.order);
 
   const qualifications = records.filter(r => r.type === 'qualifications').map(record => {
-    const draft = normalize(record), languages = {}, translations = {};
+    const draft = normalize(record, options), languages = {}, translations = {};
     for (const lang of LANGS) {
       languages[lang] = languageComplete(record, draft, lang);
       if (lang !== 'zh' && languages[lang]) translations[lang] = qualificationFields(record, draft, lang);
@@ -162,9 +163,9 @@ function content(override = null) {
 
 // 首页资质：只取这种语言有名称和图片的；勾首页展示的在前，其余按 order（F4）
 function qualifications(lang, override = null) {
-  const records = readRecords(override);
+  const records = readRecords(override), options = core.listOptions();
   return records.filter(r => r.type === 'qualifications').map(record => {
-    const draft = normalize(record);
+    const draft = normalize(record, options);
     if (!languageComplete(record, draft, lang)) return null;
     const v = draft[lang] || {}, image = draft.shared.image;
     if (!v.name || !image) return null;
@@ -174,7 +175,8 @@ function qualifications(lang, override = null) {
 
 // 案例：只取这种语言填完的；编号按 order 在这个语言的可见列表里从 01 开始（F5）
 function cases(lang, override = null) {
-  const records = readRecords(override).filter(r => r.type === 'cases').map(record => ({ record, draft: normalize(record) }))
+  const options = core.listOptions();
+  const records = readRecords(override).filter(r => r.type === 'cases').map(record => ({ record, draft: normalize(record, options) }))
     .filter(({ record, draft }) => languageComplete(record, draft, lang) && draft[lang]?.name && draft.shared.image)
     .sort((a, b) => (a.record.order || 0) - (b.record.order || 0));
   return records.map(({ record, draft }, index) => ({ ...caseFields(record, draft, lang), no: String(index + 1).padStart(2, '0') }));

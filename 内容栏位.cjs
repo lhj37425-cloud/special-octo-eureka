@@ -84,17 +84,17 @@ const TYPES = {
   },
 };
 
-// 预置选项（4.6）。越南语、英文名称是执行时拟的，标〔待确认〕（见《改版待确认文案》）
+// 预置选项（4.6）。越南语、英文名称是执行时拟的（确认状态见《改版待确认文案》），仅在新部署缺省初始化时兜底，正式数据以 state.json 为准
 const DEFAULT_OPTIONS = {
   courseCategories: [
-    { id: 'cat-aigc', zh: 'AIGC 课程', vi: 'Khóa học AIGC 〔待确认〕', en: 'AIGC Courses 〔待确认〕', disabled: false },
+    { id: 'cat-aigc', zh: 'AIGC 课程', vi: 'Khóa học AIGC', en: 'AIGC Courses', disabled: false },
   ],
   courseFacts: [
-    { id: 'fact-hours', zh: '课时', vi: 'Số giờ 〔待确认〕', en: 'Duration 〔待确认〕', disabled: false },
-    { id: 'fact-format', zh: '形式', vi: 'Hình thức 〔待确认〕', en: 'Format 〔待确认〕', disabled: false },
-    { id: 'fact-class', zh: '班型', vi: 'Quy mô lớp 〔待确认〕', en: 'Class size 〔待确认〕', disabled: false },
-    { id: 'fact-cert', zh: '结业', vi: 'Chứng nhận 〔待确认〕', en: 'Certificate 〔待确认〕', disabled: false },
-    { id: 'fact-base', zh: '基础', vi: 'Yêu cầu 〔待确认〕', en: 'Prerequisites 〔待确认〕', disabled: false },
+    { id: 'fact-hours', zh: '课时', vi: 'Số giờ', en: 'Duration', disabled: false },
+    { id: 'fact-format', zh: '形式', vi: 'Hình thức', en: 'Format', disabled: false },
+    { id: 'fact-class', zh: '班型', vi: 'Quy mô lớp', en: 'Class size', disabled: false },
+    { id: 'fact-cert', zh: '结业', vi: 'Chứng nhận', en: 'Certificate', disabled: false },
+    { id: 'fact-base', zh: '基础', vi: 'Yêu cầu', en: 'Prerequisites', disabled: false },
   ],
 };
 

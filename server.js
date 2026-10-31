@@ -41,7 +41,8 @@ function homePage(lang,override=null){let file=path.join(publicRoot,lang,'index.
 const home=pathname.match(/^\/(zh|en|vi)\/$/);if(home){let lang=home[1];return send(res,200,homePage(home[1]),'text/html; charset=utf-8')}
 // ===== 后台预览（第 6 步）：要登录；同一套前台模板；这一条用草稿，其余用发布版 =====
 const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const previewCookie=req=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2));
+// 逐段容错解析：坏段（含未转义 % 等）跳过而不是让整个请求 400；等号只切第一刀，保留值里的 '='
+const previewCookie=req=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>{const t=x.trim(),i=t.indexOf('=');if(i<1)return null;try{return[decodeURIComponent(t.slice(0,i)),decodeURIComponent(t.slice(i+1))]}catch{return null}}).filter(Boolean));
 const previewUser=req=>adminCore.auth(previewCookie(req).admin_session||'');
 const previewLangName={zh:'中文',vi:'越南语',en:'英文'};
 const previewSegmentName={teachers:'专家及讲师',courses:'课程',cases:'应用案例',qualifications:'公司资质','':'首页'};

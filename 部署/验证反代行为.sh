@@ -1,7 +1,7 @@
 #!/bin/bash
 # 用一个临时实例模拟 Nginx 反代，验证 P0 修复：真实 IP 限流、Origin 校验、Secure Cookie
 set -u
-ROOT="D:/项目"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d)"
 FRONT_PORT=4193
 ADMIN_PORT=4194
