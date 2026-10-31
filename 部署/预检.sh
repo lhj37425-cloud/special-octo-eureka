@@ -51,5 +51,5 @@ echo "== 权限 =="
 
 echo
 echo "结果：PASS $PASS 项 / FAIL $FAIL 项"
-[ "$FAIL" -eq 0 ] && echo "预检通过，可以进入 S02" || echo "有 FAIL，处理完再继续"
+[ "$FAIL" -eq 0 ] && echo "预检通过，可以继续下一步" || echo "有 FAIL，处理完再继续"
 exit "$FAIL"
