@@ -24,6 +24,9 @@ const leadHits=new Map();
 function leadLimited(req){const key=deploy.ip(req),now=Date.now(),recent=t=>now-t<10*60*1000;if(leadHits.size>5000)for(const [k,v] of leadHits)if(!v.some(recent))leadHits.delete(k);const hits=(leadHits.get(key)||[]).filter(recent);if(hits.length>=5){leadHits.set(key,hits);return true}hits.push(now);leadHits.set(key,hits);return false}
 function body(req,limit=1024*1024){return new Promise((resolve,reject)=>{let size=0,chunks=[];req.on('data',b=>{size+=b.length;if(size>limit){reject(Object.assign(Error('提交内容过大。'),{status:413}));chunks=[]}else chunks.push(b)});req.on('end',()=>{if(size>limit)return;try{resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}'))}catch{reject(Object.assign(Error('请求格式不正确。'),{status:400}))}});req.on('error',reject)})}
 const server=http.createServer(async(req,res)=>{try{const u=new URL(req.url,'http://localhost'),pathname=decodeURIComponent(u.pathname);
+if(pathname==='/healthz')return send(res,200,{ok:true});
+// 站点地图：三语静态页 + 各语言已发布的详情页，随后台发布自动更新
+if(pathname==='/sitemap.xml'){const base='https://www.evoldream.tech',db=content(),urls=[],add=x=>urls.push(base+x);for(const l of ['zh','vi','en']){for(const page of ['','training/','agents/','implementation/','cases/','about/','contact/','privacy/','terms/'])add(`/${l}/${page}`);for(const c of db.courses)if(c.languages[l])add(`/${l}/courses/${encodeURIComponent(c.id)}/`);for(const p of db.teachers)if(p.languages[l])add(`/${l}/teachers/${encodeURIComponent(p.id)}/`);for(const c of frontData.cases(l))add(`/${l}/cases/${encodeURIComponent(c.slug)}/`)}return send(res,200,`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(x=>`<url><loc>${x}</loc></url>`).join('\n')}\n</urlset>`,'application/xml; charset=utf-8')}
 // 跨站提交拦截：只接受同源表单。反代后浏览器看到的域名可能和本机 Host 不同，
 // 这里用 部署环境.host()（反代时优先 X-Forwarded-Host）比对，同时兜住 Origin 非法的情况
 if(!['GET','HEAD'].includes(req.method)&&req.headers.origin){let origin=null;try{origin=new URL(req.headers.origin)}catch{}if(!origin||origin.host!==deploy.host(req))return send(res,403,{error:'请求来源校验未通过，请刷新页面后重试。'})}
@@ -43,7 +46,8 @@ const home=pathname.match(/^\/(zh|en|vi)\/$/);if(home){let lang=home[1];return s
 const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // 逐段容错解析：坏段（含未转义 % 等）跳过而不是让整个请求 400；等号只切第一刀，保留值里的 '='
 const previewCookie=req=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>{const t=x.trim(),i=t.indexOf('=');if(i<1)return null;try{return[decodeURIComponent(t.slice(0,i)),decodeURIComponent(t.slice(i+1))]}catch{return null}}).filter(Boolean));
-const previewUser=req=>adminCore.auth(previewCookie(req).admin_session||'');
+// 预览只读鉴权：不写活跃时间、不清理过期会话，避免前台进程把整份旧 state.json 写回去盖掉后台的保存
+const previewUser=req=>adminCore.auth(previewCookie(req).admin_session||'',{readonly:true});
 const previewLangName={zh:'中文',vi:'越南语',en:'英文'};
 const previewSegmentName={teachers:'专家及讲师',courses:'课程',cases:'应用案例',qualifications:'公司资质','':'首页'};
 function previewBar(req,lang,segment,id,record){
@@ -77,7 +81,11 @@ if(previewMedia){
  if(!fs.existsSync(file))return send(res,404,'Not found','text/plain; charset=utf-8');
  const ext=path.extname(file).toLowerCase(),type=mime[ext]||'application/octet-stream';
  const stat=fs.statSync(file);
- res.writeHead(200,{'Content-Type':type,'X-Content-Type-Options':'nosniff','Content-Length':stat.size});
+ // 预览媒体：禁止共享缓存保存（未发布内容），支持 Range 让视频能拖进度
+ const headers={'Content-Type':type,'X-Content-Type-Options':'nosniff','Cache-Control':'private, no-store','Accept-Ranges':'bytes'};
+ const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+ if(range){const start=Number(range[1]),end=range[2]?Math.min(Number(range[2]),stat.size-1):stat.size-1;if(start>=stat.size||start>end){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});return res.end()}res.writeHead(206,{...headers,'Content-Range':`bytes ${start}-${end}/${stat.size}`,'Content-Length':end-start+1});return fs.createReadStream(file,{start,end}).pipe(res)}
+ res.writeHead(200,{...headers,'Content-Length':stat.size});
  return fs.createReadStream(file).pipe(res);
 }
 const preview=pathname.match(/^\/preview\/(zh|en|vi)(?:\/(teachers|courses|cases|qualifications)(?:\/([^/]+))?)?\/?$/);
@@ -104,6 +112,6 @@ if(preview){
  return send(res,page.status||200,previewChrome(page.body,req,lang,segment,id,record),'text/html; charset=utf-8');
 }
 let file=path.resolve(publicRoot,pathname.slice(1));if(!file.startsWith(publicRoot+path.sep))return send(res,404,notFoundPage(pathname),'text/html; charset=utf-8');if(fs.existsSync(file)&&fs.statSync(file).isDirectory()){if(!pathname.endsWith('/')){res.writeHead(302,{Location:pathname+'/'+u.search});return res.end()}file=path.join(file,'index.html')}if(!fs.existsSync(file)||!fs.statSync(file).isFile())return send(res,404,notFoundPage(pathname),'text/html; charset=utf-8');if(path.extname(file).toLowerCase()==='.html'&&req.method==='GET')return send(res,200,addStaticBackLink(fs.readFileSync(file,'utf8'),pathname),'text/html; charset=utf-8');let stat=fs.statSync(file),headers={'Content-Type':mime[path.extname(file).toLowerCase()]||'application/octet-stream','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes'};const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);if(range){let start=Number(range[1]),end=range[2]?Math.min(Number(range[2]),stat.size-1):stat.size-1;if(start>end||start>=stat.size){res.writeHead(416,{'Content-Range':`bytes */${stat.size}`});return res.end()}res.writeHead(206,{...headers,'Content-Range':`bytes ${start}-${end}/${stat.size}`,'Content-Length':end-start+1});return fs.createReadStream(file,{start,end}).pipe(res)}res.writeHead(200,{...headers,'Content-Length':stat.size});if(req.method==='HEAD')return res.end();fs.createReadStream(file).pipe(res)
-}catch(error){if(res.headersSent)return res.end();if(error instanceof URIError)return send(res,400,'400 Bad Request','text/plain; charset=utf-8');send(res,error.status||500,{error:error.status&&error.status<500?error.message:'本地服务暂时不可用，请重试。'})}});
+}catch(error){if(res.headersSent)return res.end();if(!error.status||error.status>=500)console.error(error);if(error instanceof URIError)return send(res,400,'400 Bad Request','text/plain; charset=utf-8');send(res,error.status||500,{error:error.status&&error.status<500?error.message:'本地服务暂时不可用，请重试。'})}});
 // 默认只监听本机回环，由同机 Nginx 反代对外；如需容器内监听全部网卡，设 HOST=0.0.0.0
 server.listen(Number(process.env.PORT||4173),process.env.HOST||'127.0.0.1',()=>console.log('EVOL DREAM MVP http://127.0.0.1:'+(process.env.PORT||4173)+'/zh/'));

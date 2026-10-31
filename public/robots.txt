@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /preview/
+Disallow: /preview-media/
+Disallow: /media/
+Disallow: /api/
+
+Sitemap: https://www.evoldream.tech/sitemap.xml
