@@ -1,0 +1,53 @@
+{
+  "说明": "本文件是部署相关数字、路径、端口的唯一事实源。部署手册（前辈版）与 AI 执行契约都以此为准；任何文档与本文件冲突时，停下来确认，不要自行发挥。",
+  "release": {
+    "commit": "17e5c37",
+    "branch": "claude/trusting-shannon-bx9kom",
+    "tag": "v1.0-deploy",
+    "打包日期": "2026-10-31"
+  },
+  "domains": ["www.evoldream.tech", "evoldream.tech"],
+  "siteUrl": "https://www.evoldream.tech",
+  "server": {
+    "os": "Debian 12 / Ubuntu 22.04+",
+    "node": ">= 18",
+    "runUser": "www-data"
+  },
+  "ports": { "front": 4173, "admin": 4181, "listen": "127.0.0.1" },
+  "paths": {
+    "root": "/srv/evol",
+    "data": "/srv/evol/data",
+    "adminData": "/srv/evol/data/admin-backend",
+    "backup": "/srv/backup",
+    "nginxConf": "/etc/nginx/conf.d/evol.conf",
+    "systemd": "/etc/systemd/system"
+  },
+  "services": ["evol-front", "evol-admin"],
+  "env": {
+    "front": { "PORT": "4173", "MVP_DATA_DIR": "/srv/evol/data", "ADMIN_DATA_DIR": "/srv/evol/data/admin-backend", "ADMIN_BASE_PATH": "/admin/", "HOST": "127.0.0.1" },
+    "admin": { "ADMIN_PORT": "4181", "MVP_DATA_DIR": "/srv/evol/data", "ADMIN_DATA_DIR": "/srv/evol/data/admin-backend", "HOST": "127.0.0.1" }
+  },
+  "dataSnapshot": {
+    "记录总数": 28,
+    "专家": 13,
+    "课程": 2,
+    "案例": 6,
+    "资质": 7,
+    "管理员账号": 1,
+    "登录会话": 0,
+    "上传文件": 78,
+    "上传体积": "约 198MB",
+    "数据目录体积": "约 380MB（含后台自带备份）"
+  },
+  "关键门禁": {
+    "S05": "本机自检 4173/4181 全部 200 且 /api/status 返回 initialized:true，否则不配置 Nginx",
+    "S10": "上线后验证脚本全部 PASS，否则不切 DNS / 不宣布上线"
+  },
+  "禁止事项": [
+    "不要把 4173/4181 改成 0.0.0.0 直接暴露",
+    "不要手改 state.json，内容改动一律走后台页面",
+    "不要把 /admin/ 挂到独立子域（预览 Cookie 跨不过去会 401）",
+    "不要删除 /srv/backup 里最近一份备份",
+    "不要在上线窗口改代码，只部署 tag 对应的包"
+  ]
+}
